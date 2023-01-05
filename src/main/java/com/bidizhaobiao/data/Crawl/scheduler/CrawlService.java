@@ -126,7 +126,8 @@ public class CrawlService {
             crawlerTimerLogDao.save(timerLog);
             //插入本项目所有的爬虫配置，获取该定时器所有的爬虫
             if (startCrawlList.size() == 0) {
-                startCrawlList = fileReadUtil.selectConfig();
+//                startCrawlList = fileReadUtil.selectConfig();
+                startCrawlList.add("SJ_19419_ZhaobGgService");
                 //存储配置信息
                 insertConfig(startCrawlList);
             }
@@ -173,7 +174,8 @@ public class CrawlService {
                     if (checkTime != null) {
                         //判断是否到达校验时间，保证每隔15分钟都有校验,只有增量才会有
                         Date checkDate = df.parse(checkTime);
-                        if (checkDate.before(new Date())) {
+//                        if (checkDate.before(new Date())) {
+                        if (true) {
                             needStartSpider.setClassName(className);
                             needStartSpider.setCrawlStartTime(checkDate);
                             needStartSpider.setCrawlType(1);
