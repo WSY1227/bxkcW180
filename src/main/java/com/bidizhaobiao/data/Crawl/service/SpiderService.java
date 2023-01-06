@@ -619,11 +619,12 @@ public abstract class SpiderService implements ISpiderService {
                         //全量启动，则不干预爬虫
                         return needCrawldetailList;
                     } else {
-                        if ((pageNum == 1) && needCrawldetailList.size() == 0 && needCheckPageNum == 1) {
-                            //如果第一页无数据需要入库，则停止
-                            serviceContext.setNeedCrawl(false);
-                            logger.info("{},只需要校验1页且当前页为{}，无数据需要入库，符合停止条件", className, pageNum);
-                        } else if (checkListPageNum == 1 && needCrawldetailList.size() == 0 && serviceContext.isExistOldData()) {
+//                        if ((pageNum == 1) && needCrawldetailList.size() == 0 && needCheckPageNum == 1) {
+//                            //如果第一页无数据需要入库，则停止
+//                            serviceContext.setNeedCrawl(false);
+//                            logger.info("{},只需要校验1页且当前页为{}，无数据需要入库，符合停止条件", className, pageNum);
+//                        } else
+                            if (checkListPageNum == 1 && needCrawldetailList.size() == 0 && serviceContext.isExistOldData()) {
                             //如果是校验启动，且首页无数据入库，且首页数据存在到2019年的数据,则停止爬虫
                             serviceContext.setNeedCrawl(false);
                             logger.info("{},校验启动首页无数据入库且首页含有2019年前的数据，符合停止条件", className, serviceContext.getHasDataPageNum(), pageNum);
