@@ -61,6 +61,7 @@ public class DS_14003_ZhaobGgService extends SpiderService implements PageProces
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
+    int pageCount = 1;
 
     public Site getSite() {
         return this.site;
@@ -133,13 +134,16 @@ public class DS_14003_ZhaobGgService extends SpiderService implements PageProces
                     dealWithNullListPage(serviceContext);
                 }
                 Element nextPage = doc.select("#pageLink").first();
-                int pageCount = 1;
-                Pattern p = Pattern.compile("\\d+");
-                Matcher m = p.matcher(nextPage.toString());
-                if (m.find()) {
-                    pageCount = Integer.parseInt(m.group());
-                }
+                //获取当前页
                 int pageNum = serviceContext.getPageNum();
+                //更新最大页
+                if (pageNum == 1) {
+                    Pattern p = Pattern.compile("\\d+");
+                    Matcher m = p.matcher(nextPage.toString());
+                    if (m.find()) {
+                        pageCount = Integer.parseInt(m.group());
+                    }
+                }
                 if (nextPage != null && pageNum < pageCount && serviceContext.isNeedCrawl()) {
                     String href = listUrl + "index_" + pageNum + ".shtml";
                     page.addTargetRequest(href);

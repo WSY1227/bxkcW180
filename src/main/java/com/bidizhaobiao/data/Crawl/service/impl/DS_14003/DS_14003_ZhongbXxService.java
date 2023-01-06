@@ -59,6 +59,7 @@ public class DS_14003_ZhongbXxService extends SpiderService implements PageProce
     // 设置县
     public String district;
     public String createBy = "徐文帅";
+    int pageCount = 1;
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
@@ -131,13 +132,16 @@ public class DS_14003_ZhongbXxService extends SpiderService implements PageProce
                     dealWithNullListPage(serviceContext);
                 }
                 Element nextPage = doc.select("#pageLink").first();
-                int pageCount = 1;
-                Pattern p = Pattern.compile("\\d+");
-                Matcher m = p.matcher(nextPage.toString());
-                if (m.find()) {
-                    pageCount = Integer.parseInt(m.group());
-                }
+
                 int pageNum = serviceContext.getPageNum();
+                //更新最大页
+                if (pageNum == 1) {
+                    Pattern p = Pattern.compile("\\d+");
+                    Matcher m = p.matcher(nextPage.toString());
+                    if (m.find()) {
+                        pageCount = Integer.parseInt(m.group());
+                    }
+                }
                 if (nextPage != null && pageNum < pageCount && serviceContext.isNeedCrawl()) {
                     String href = listUrl + "index_" + pageNum + ".shtml";
                     page.addTargetRequest(href);
