@@ -131,18 +131,19 @@ public class DS_14003_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("#pageLink").first();
+
 
                 int pageNum = serviceContext.getPageNum();
                 //更新最大页
                 if (pageNum == 1) {
+                    Element nextPage = doc.select("#pageLink").first();
                     Pattern p = Pattern.compile("\\d+");
                     Matcher m = p.matcher(nextPage.toString());
                     if (m.find()) {
                         pageCount = Integer.parseInt(m.group());
                     }
                 }
-                if (nextPage != null && pageNum < pageCount && serviceContext.isNeedCrawl()) {
+                if ( pageNum < pageCount && serviceContext.isNeedCrawl()) {
                     String href = listUrl + "index_" + pageNum + ".shtml";
                     page.addTargetRequest(href);
                     serviceContext.setPageNum(++pageNum);

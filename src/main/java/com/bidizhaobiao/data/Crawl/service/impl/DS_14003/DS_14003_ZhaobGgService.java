@@ -133,18 +133,19 @@ public class DS_14003_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("#pageLink").first();
+
                 //获取当前页
                 int pageNum = serviceContext.getPageNum();
                 //更新最大页
                 if (pageNum == 1) {
+                    Element nextPage = doc.select("#pageLink").first();
                     Pattern p = Pattern.compile("\\d+");
                     Matcher m = p.matcher(nextPage.toString());
                     if (m.find()) {
                         pageCount = Integer.parseInt(m.group());
                     }
                 }
-                if (nextPage != null && pageNum < pageCount && serviceContext.isNeedCrawl()) {
+                if (pageNum < pageCount && serviceContext.isNeedCrawl()) {
                     String href = listUrl + "index_" + pageNum + ".shtml";
                     page.addTargetRequest(href);
                     serviceContext.setPageNum(++pageNum);
