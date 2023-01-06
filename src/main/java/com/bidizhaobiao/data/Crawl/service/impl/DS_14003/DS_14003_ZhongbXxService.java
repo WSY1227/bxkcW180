@@ -138,9 +138,7 @@ public class DS_14003_ZhongbXxService extends SpiderService implements PageProce
                     pageCount = Integer.parseInt(m.group());
                 }
                 int pageNum = serviceContext.getPageNum();
-                if (nextPage != null && pageNum < pageCount
-                        //&& serviceContext.isNeedCrawl()
-                ) {
+                if (nextPage != null && pageNum < pageCount && serviceContext.isNeedCrawl()) {
                     String href = listUrl + "index_" + pageNum + ".shtml";
                     page.addTargetRequest(href);
                     serviceContext.setPageNum(++pageNum);
