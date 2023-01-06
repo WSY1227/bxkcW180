@@ -196,7 +196,7 @@ public class SJ_19557_1_ZhaobGgService extends SpiderService implements PageProc
                                 }
                             }
                         }
-                        Matcher dateMat = datePat.matcher(contentElement.select(".article-infobox>span").first().text());
+                        Matcher dateMat = datePat.matcher(contentElement.select(".article-infobox").text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
@@ -208,7 +208,6 @@ public class SJ_19557_1_ZhaobGgService extends SpiderService implements PageProc
                         }
                         contentElement.select(".article-infobox").remove();
                         contentElement.select("hr").remove();
-                        contentElement.select("h2").first().remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();

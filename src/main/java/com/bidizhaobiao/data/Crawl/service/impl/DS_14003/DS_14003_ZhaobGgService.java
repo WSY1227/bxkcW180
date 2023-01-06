@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_19558;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_14003;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -17,36 +17,45 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
 
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 /**
- * 程序员：徐文帅 日期：2023-01-04
- * 原网站：https://zhaoxing.info/category/bid-winner-notice/
- * 主页：https://zhaoxing.info
+ * 程序员：徐文帅 日期：2023-01-06
+ * 原网站：http://cz.jsjc.gov.cn/jianwu/tongzhi/
+ * 主页：http://cz.jsjc.gov.cn/
  **/
 @Service
-public class DS_19558_2_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DS_14003_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://zhaoxing.info/category/bid-winner-notice/";
-    public String baseUrl = "https://zhaoxing.info";
+    public String listUrl = "http://cz.jsjc.gov.cn/jianwu/tongzhi/";
+    public String baseUrl = "http://cz.jsjc.gov.cn/";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "19558-2";
+    public String sourceNum = "14003";
     // 网站名称
-    public String sourceName = "广州兆兴工程服务有限公司";
+    public String sourceName = "常州市人民检察院";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
     public String area = "华东";
     // 设置省份
-    public String province = "广东";
+    public String province = "江苏";
     // 设置城市
-    public String city = "广州市";
+    public String city = "常州市";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -78,23 +87,34 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("category")) {
+            if (!url.contains("/tongzhi/2")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("article:has(a)");
+                Elements listElement = doc.select(".left>ul>li");
                 if (listElement.size() > 0) {
+                    String key = "招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、遴选、标段、明标、明投、出让、转让、拍卖、招租、预审、发包、开标、答疑、补遗、澄清、挂牌";
+                    String[] keys = key.split("、");
                     for (Element element : listElement) {
-                        Element a = element.select(".custom-entry-header a").first();
+                        Element a = element.select("a").first();
                         String link = a.attr("href").trim();
+                        //非.开头的是非本网站链接
+                        if (!link.startsWith(".")) {
+                            continue;
+                        }
+                        String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = listUrl + link.substring(2);
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.select("time").first().text());
+                        Matcher dateMat = datePat.matcher(element.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.text().trim();
-                        String id = SpecialUtil.stringMd5(title + date);
+                        String title = a.attr("title").trim();
+                        if (title.length() < 2) title = a.text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -112,12 +132,20 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                //翻页
-                Element nextPage = doc.select(".next.page-numbers").first();
-                if (nextPage != null && nextPage.attr("href").contains("category") && serviceContext.isNeedCrawl()) {
-                    String href = nextPage.attr("href").trim();
-                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
+                Element nextPage = doc.select("#pageLink").first();
+                int pageCount = 1;
+                Pattern p = Pattern.compile("\\d+");
+                Matcher m = p.matcher(nextPage.toString());
+                if (m.find()) {
+                    pageCount = Integer.parseInt(m.group());
+                }
+                int pageNum = serviceContext.getPageNum();
+                if (nextPage != null && pageNum < pageCount
+                        //&& serviceContext.isNeedCrawl()
+                ) {
+                    String href = listUrl + "index_" + pageNum + ".shtml";
                     page.addTargetRequest(href);
+                    serviceContext.setPageNum(++pageNum);
                 }
             } else {
                 BranchNew branch = map.get(url);
@@ -129,7 +157,7 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("article").first();
+                    Element contentElement = doc.select("#main>.left").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -178,6 +206,27 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                                 continue;
                             }
                             if (src.contains("data:image")) {
+                                try {
+                                    SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+                                    String dateString = formatter.format(new Date());
+                                    String path = imgPath + "/" + dateString + "/" + date + "/" + sourceNum;
+                                    String uuid = UUID.randomUUID().toString();
+                                    String fileName = uuid + ".jpg";
+                                    String newLink = "http://www.bidizhaobiao.com/file/" + dateString + "/" + date
+                                            + "/" + sourceNum + "/" + fileName;
+                                    // 文件保存位置
+                                    File saveDir = new File(path);
+                                    if (!saveDir.exists()) {
+                                        saveDir.mkdirs();
+                                    }
+                                    byte[] imagedata = DatatypeConverter
+                                            .parseBase64Binary(src.substring(src.indexOf(",") + 1));
+                                    BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imagedata));
+                                    ImageIO.write(bufferedImage, "png", new File(path + "/" + fileName));
+                                    img.attr("src", newLink);
+                                } catch (Exception e) {
+                                    img.remove();
+                                }
                                 continue;
                             }
                             if (src.length() > 10 && src.indexOf("http") != 0) {
@@ -200,13 +249,16 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                                 }
                             }
                         }
-
-                        Element titleElement = contentElement.select("h3.entry-title").first();
+                        Element titleElement = contentElement.select("#title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select(".entry-meta").remove();
-                        contentElement.select(".entry-header").remove();
+                        contentElement.select("#ptime").remove();
+                        contentElement.select("#locat").remove();
+                        contentElement.select(".share").remove();
+                        contentElement.select(".Hspace").remove();
+                        contentElement.select(".updown").remove();
+                        contentElement.select(".Hspace").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
@@ -231,4 +283,6 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
             dealWithError(url, serviceContext, e);
         }
     }
+
+
 }

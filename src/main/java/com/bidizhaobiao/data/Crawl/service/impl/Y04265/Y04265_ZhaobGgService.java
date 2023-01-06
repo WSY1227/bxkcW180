@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_19558;
+package com.bidizhaobiao.data.Crawl.service.impl.Y04265;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -23,32 +23,33 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 程序员：徐文帅 日期：2023-01-04
- * 原网站：https://zhaoxing.info/category/bid-winner-notice/
- * 主页：https://zhaoxing.info
+ * 程序员：徐文帅 日期：2023-01-06
+ * 原网站：http://www.xhdeyy.com/news.aspx?mid=24
+ * 主页：http://www.xhdeyy.com
  **/
 @Service
-public class DS_19558_2_ZhongbXxService extends SpiderService implements PageProcessor {
+public class Y04265_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
-
-    public String listUrl = "https://zhaoxing.info/category/bid-winner-notice/";
-    public String baseUrl = "https://zhaoxing.info";
+    //列表界面
+    public String listUrl = "http://www.xhdeyy.com/news.aspx?mid=24";
+    //域名
+    public String baseUrl = "http://www.xhdeyy.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "19558-2";
+    public String sourceNum = "Y04265";
     // 网站名称
-    public String sourceName = "广州兆兴工程服务有限公司";
+    public String sourceName = "宣汉县第二人民医院";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "西南";
     // 设置省份
-    public String province = "广东";
+    public String province = "四川";
     // 设置城市
-    public String city = "广州市";
+    public String city = "达州市";
     // 设置县
-    public String district;
+    public String district = "宣汉县";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -73,28 +74,35 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
         saveCrawlResult(serviceContext);
     }
 
+    @Override
     public void process(Page page) {
         String url = page.getUrl().toString();
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("category")) {
+            if (url.contains("?mid=")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("article:has(a)");
+                Elements listElement = doc.select(".news-list.clearFix>li");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
-                        Element a = element.select(".custom-entry-header a").first();
+                        Element a = element.select("a").first();
                         String link = a.attr("href").trim();
+                        String id = link.substring(link.lastIndexOf("?") + 1);
+                        link = baseUrl + "/" + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.select("time").first().text());
+                        Matcher dateMat = datePat.matcher(element.select(".date").text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.text().trim();
-                        String id = SpecialUtil.stringMd5(title + date);
+                        String title = a.select(".con").text().trim();
+                        if (title.length() < 2) title = a.text().trim();
+                        String[] keys = "招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、遴选、标段、明标、明投、出让、转让、拍卖、招租、预审、发包、开标、答疑、补遗、澄清、挂牌".split("、");
+                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -112,9 +120,8 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                //翻页
-                Element nextPage = doc.select(".next.page-numbers").first();
-                if (nextPage != null && nextPage.attr("href").contains("category") && serviceContext.isNeedCrawl()) {
+                Element nextPage = doc.select("a:contains(下一页)").first();
+                if (nextPage != null && nextPage.attr("href").contains("?mid=") && serviceContext.isNeedCrawl()) {
                     String href = nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
@@ -129,7 +136,7 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("article").first();
+                    Element contentElement = doc.select(".pnews-left.fl").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -200,13 +207,12 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
                                 }
                             }
                         }
-
-                        Element titleElement = contentElement.select("h3.entry-title").first();
+                        Element titleElement = contentElement.select(".title>.t").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select(".entry-meta").remove();
-                        contentElement.select(".entry-header").remove();
+                        contentElement.select(".title").remove();
+                        contentElement.select(".article-page").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
@@ -231,4 +237,6 @@ public class DS_19558_2_ZhongbXxService extends SpiderService implements PagePro
             dealWithError(url, serviceContext, e);
         }
     }
+
+
 }

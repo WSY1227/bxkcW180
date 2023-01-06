@@ -127,7 +127,7 @@ public class CrawlService {
             //插入本项目所有的爬虫配置，获取该定时器所有的爬虫
             if (startCrawlList.size() == 0) {
 //                startCrawlList = fileReadUtil.selectConfig();
-                startCrawlList.add("SJ_19419_ZhaobGgService");
+                startCrawlList.add("DS_14003_ZhongbXxService");
                 //存储配置信息
                 insertConfig(startCrawlList);
             }
