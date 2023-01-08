@@ -41,7 +41,7 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
     public Spider spider = null;
 
     public String listUrl = "http://xcyey.gcjy.info/default.aspx?mcode=02&Columnid=28448";
-    public String baseUrl = "http://xcyey.gcjy.info/default.aspx?mcode=02&Columnid=28448";
+    public String baseUrl = "http://xcyey.gcjy.info";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
@@ -89,7 +89,7 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
             Thread.sleep(500);
             if (url.contains("&page=")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("ul.list li:has(a)");
+                Elements listElement = doc.select("ul.th005-news-l li");
                 if (listElement.size() > 0) {
                     String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、优选、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
@@ -97,7 +97,7 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("?") + 1);
-                        link = url.substring(0,url.lastIndexOf("/") + 1) + link;
+                        link = baseUrl+"/" + link;
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -128,12 +128,12 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("&page=") && serviceContext.isNeedCrawl()) {
-                    String href = baseUrl + nextPage.attr("href").trim();
-                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    page.addTargetRequest(href);
-                }
+//                Element nextPage = doc.select("a:contains(下一页)").first();
+//                if (nextPage != null && nextPage.attr("href").contains("&page=") && serviceContext.isNeedCrawl()) {
+//                    String href = baseUrl + nextPage.attr("href").trim();
+//                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
+//                    page.addTargetRequest(href);
+//                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -144,7 +144,7 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.article").first();
+                    Element contentElement = doc.select("div.th005-content-frame").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -236,11 +236,14 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div.hd h1").first();
+                        Element titleElement = contentElement.select(".th005-content-ht").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.hd p.titBar").remove();
+                        contentElement.select(".th005-content-navht").remove();
+                        contentElement.select(".th005-content-time").remove();
+                        contentElement.select(".p-n").remove();
+                        contentElement.select(".th005-content-close").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
