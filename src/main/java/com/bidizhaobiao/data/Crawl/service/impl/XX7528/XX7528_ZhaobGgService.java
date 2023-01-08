@@ -87,7 +87,7 @@ public class XX7528_ZhaobGgService extends SpiderService implements PageProcesso
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("&page=")) {
+            if (url.contains("?mcode=")) {
                 Document doc = Jsoup.parse(page.getRawText());
                 Elements listElement = doc.select("ul.th005-news-l li");
                 if (listElement.size() > 0) {
