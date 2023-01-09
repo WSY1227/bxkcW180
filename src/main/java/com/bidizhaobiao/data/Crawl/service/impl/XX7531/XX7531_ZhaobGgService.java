@@ -23,6 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -128,7 +130,7 @@ public class XX7531_ZhaobGgService extends SpiderService implements PageProcesso
                 }
                 Element nextPage = doc.select("a:contains(下一页)").first();
                 if (nextPage != null && nextPage.attr("href").contains("a=lists") && serviceContext.isNeedCrawl()) {
-                    String href = baseUrl+"/" + nextPage.attr("href").trim();
+                    String href = baseUrl + "/" + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -238,6 +240,14 @@ public class XX7531_ZhaobGgService extends SpiderService implements PageProcesso
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
+                        if (date.isEmpty()) {
+                            Matcher dateMat = datePat.matcher(contentElement.toString());
+                            if (dateMat.find()) {
+                                date = dateMat.group(1);
+                                date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
+                                date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
+                            }
+                        }
                         contentElement.select("#info-M").remove();
                         contentElement.select("#info-N").remove();
                         contentElement.select("#clear").remove();
@@ -247,6 +257,16 @@ public class XX7531_ZhaobGgService extends SpiderService implements PageProcesso
                     } else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
+                    }
+                    if (date.isEmpty()) {
+                        // 获取当前时间
+                        LocalDateTime now = LocalDateTime.now();
+
+                        // 创建时间格式化器
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+                        // 将时间格式化为yyyy-mm-dd的格式
+                        date = now.format(formatter);
                     }
                     RecordVO recordVO = new RecordVO();
                     recordVO.setId(branch.getId());
