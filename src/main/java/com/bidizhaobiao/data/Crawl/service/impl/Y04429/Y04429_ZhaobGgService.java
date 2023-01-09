@@ -32,11 +32,11 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-09
+ * 程序员：徐文帅 日期：2023-01-08
  * 原网站：http://www.mzfybjy.com/index.php?catid=14
  * 主页：http://www.mzfybjy.com
  **/
-@Service("Y04429_ZhaobGgService")
+@Service
 public class Y04429_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
@@ -63,7 +63,7 @@ public class Y04429_ZhaobGgService extends SpiderService implements PageProcesso
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
-        return this.site;
+          return this.site;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
@@ -82,34 +82,32 @@ public class Y04429_ZhaobGgService extends SpiderService implements PageProcesso
         saveCrawlResult(serviceContext);
     }
 
-    public void process(Page page) {
+        public void process(Page page) {
         String url = page.getUrl().toString();
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("catid=")) {
+            if (url.contains("&page=")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("ul.hosp-news>li>a");
+                Elements listElement = doc.select("ul.list li:has(a)");
                 if (listElement.size() > 0) {
                     String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、择选、择优、选取、优选、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
-                    for (Element a : listElement) {
+                    for (Element element : listElement) {
+                        Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        //非本网站则跳过
-                        if (!link.contains("index.php?id")) {
-                            continue;
-                        }
                         String id = link.substring(link.lastIndexOf("?") + 1);
-                        link = baseUrl + link;
+                        link = url.substring(0,url.lastIndexOf("/") + 1) + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(a.select(".news-time p").text() + "-" + a.select(".news-time span").text());
+                        Matcher dateMat = datePat.matcher(element.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.select(".news-txt h3").first().text().trim();
+                        String title = a.attr("title").trim();
+                        if (title.length() < 2) title = a.text().trim();
                         if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
                             continue;
                         }
@@ -130,7 +128,7 @@ public class Y04429_ZhaobGgService extends SpiderService implements PageProcesso
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select(".zpcms-page a:contains(>)").first();
+                Element nextPage = doc.select("a:contains(下一页)").first();
                 if (nextPage != null && nextPage.attr("href").contains("&page=") && serviceContext.isNeedCrawl()) {
                     String href = baseUrl + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
@@ -146,7 +144,7 @@ public class Y04429_ZhaobGgService extends SpiderService implements PageProcesso
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.abtr_txt").first();
+                    Element contentElement = doc.select("div.article").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -238,15 +236,15 @@ public class Y04429_ZhaobGgService extends SpiderService implements PageProcesso
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div.new_tit").first();
+                        Element titleElement = contentElement.select("div.hd h1").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.new_jianjie").remove();
+                        contentElement.select("div.hd p.titBar").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
-                    } else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
+                    }else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
                     }
@@ -267,6 +265,8 @@ public class Y04429_ZhaobGgService extends SpiderService implements PageProcesso
             dealWithError(url, serviceContext, e);
         }
     }
+
+
 
 
 }
