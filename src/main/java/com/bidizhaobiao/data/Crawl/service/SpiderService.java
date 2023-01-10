@@ -916,7 +916,7 @@ public abstract class SpiderService implements ISpiderService {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 Date pageDate = sdf.parse(recordVo.getDate());
                 JSONArray fileArray = new JSONArray();
-                if (serviceContext.isSaveFile() && (pageDate.after(sdf.parse("2020-01-01")))) {
+                if (serviceContext.isSaveFile()) {
                     JSONObject saveFileJsonObject = downFile(uuid, recordVo, serviceContext);//下载文件中的图片
                     String content = saveFileJsonObject.getString("content");
                     fileArray = saveFileJsonObject.getJSONArray("fileInfo");
