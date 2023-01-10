@@ -514,7 +514,7 @@ public abstract class SpiderService implements ISpiderService {
     public BranchNew isDataExist(BranchNew branch, ServiceContext serviceContext) {
         List<String> reccordIdsInfoRedis = serviceContext.getRecordIdsInfoRedis();
         String recordId = branch.getId();
-        if (!reccordIdsInfoRedis.contains(recordId)) {
+//        if (!reccordIdsInfoRedis.contains(recordId)) {
             List<Proclamation> oldPro = proclamationDao.isProclamationExist(
                     serviceContext.getTableName(), serviceContext.getSourceNum(), serviceContext.getSplitPointStr(),
                     recordId);
@@ -531,9 +531,9 @@ public abstract class SpiderService implements ISpiderService {
                     logger.info("{}linkedList识别到存在的recordId为：{}", serviceContext.getName(), recordId);
                 }
             }
-        } else {
-            logger.info("{}识别到已经在redis中的recordId为：{}", serviceContext.getName(), recordId);
-        }
+//        } else {
+//            logger.info("{}识别到已经在redis中的recordId为：{}", serviceContext.getName(), recordId);
+//        }
         return branch;
     }
 
@@ -562,7 +562,7 @@ public abstract class SpiderService implements ISpiderService {
             try {
                 // 遍历判断每一条爬虫是否存在有无必要进行数据爬取
                 int oldDataNum = 0;
-                if ((checkListPageNum == 2) && (serviceContext.getSuccessNum() == 0 && serviceContext.getErrorNum() == 0)) {
+                if ((checkListPageNum > 3) && (serviceContext.getSuccessNum() == 0 && serviceContext.getErrorNum() == 0)) {
                     if (needCheckPageNum == 1) {
                         //招标分解中标，第一页有数据需要爬取但是无数据需要入库，则停止
                         serviceContext.setNeedCrawl(false);
