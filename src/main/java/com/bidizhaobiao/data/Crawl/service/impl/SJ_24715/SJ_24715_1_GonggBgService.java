@@ -208,10 +208,16 @@ public class SJ_24715_1_GonggBgService extends SpiderService implements PageProc
                                 }
                             }
                         }
-                        String iframeSrc = doc.select("#pdfContainer").attr("src");
-                        doc.select("#pdfContainer").attr("src", baseUrl + iframeSrc);
-                        Element titleElement = contentElement.select(".notice_title").first();
 
+                        Elements elements = contentElement.select("iframe[src]");
+                        for (Element element : elements) {
+                            String src = element.attr("src");
+                            src = src.split("file=")[1];
+                            element.attr("href", src);
+                            element.tagName("a");
+                            element.text("文件下载");
+                        }
+                        Element titleElement = contentElement.select(".notice_title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }

@@ -97,6 +97,7 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
+                        if (title.contains("评审结果")) continue;
                         if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
@@ -205,8 +206,8 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
                             }
                         }
                         Element titleElement = contentElement.select("h1.w-ct-f").first();
-                        titleElement.select("span").remove();
                         if (titleElement != null) {
+                            titleElement.select("span").remove();
                             title = titleElement.text().trim();
                         }
                         contentElement.select("div.ClickIMG").remove();

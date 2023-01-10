@@ -86,7 +86,7 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        if (!link.contains("nd.jsp?id=")) {
+                        if (link.contains("zfcg.gxzf.gov.cn")) {
                             continue;
                         }
                         String id = link.substring(link.lastIndexOf("?") + 1);

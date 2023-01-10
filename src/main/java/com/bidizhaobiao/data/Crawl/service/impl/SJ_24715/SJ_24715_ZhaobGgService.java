@@ -63,7 +63,7 @@ public class SJ_24715_ZhaobGgService extends SpiderService implements PageProces
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
-          return this.site;
+        return this.site;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
@@ -82,7 +82,7 @@ public class SJ_24715_ZhaobGgService extends SpiderService implements PageProces
         saveCrawlResult(serviceContext);
     }
 
-        public void process(Page page) {
+    public void process(Page page) {
         String url = page.getUrl().toString();
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
@@ -210,9 +210,14 @@ public class SJ_24715_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-
-                        String iframeSrc = doc.select("#pdfContainer").attr("src");
-                        doc.select("#pdfContainer").attr("src", baseUrl + iframeSrc);
+                        Elements elements = contentElement.select("iframe[src]");
+                        for (Element element : elements) {
+                            String src = element.attr("src");
+                            src = src.split("file=")[1];
+                            element.attr("href", src);
+                            element.tagName("a");
+                            element.text("文件下载");
+                        }
                         Element titleElement = contentElement.select(".notice_title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
@@ -222,7 +227,7 @@ public class SJ_24715_ZhaobGgService extends SpiderService implements PageProces
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
-                    }else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
+                    } else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
                     }
@@ -243,8 +248,6 @@ public class SJ_24715_ZhaobGgService extends SpiderService implements PageProces
             dealWithError(url, serviceContext, e);
         }
     }
-
-
 
 
 }

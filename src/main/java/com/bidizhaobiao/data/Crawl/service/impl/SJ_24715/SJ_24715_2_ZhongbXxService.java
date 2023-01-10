@@ -210,9 +210,14 @@ public class SJ_24715_2_ZhongbXxService extends SpiderService implements PagePro
                                 }
                             }
                         }
-
-                        String iframeSrc = doc.select("#pdfContainer").attr("src");
-                        doc.select("#pdfContainer").attr("src", baseUrl + iframeSrc);
+                        Elements elements = contentElement.select("iframe[src]");
+                        for (Element element : elements) {
+                            String src = element.attr("src");
+                            src = src.split("file=")[1];
+                            element.attr("href", src);
+                            element.tagName("a");
+                            element.text("文件下载");
+                        }
                         Element titleElement = contentElement.select(".notice_title").first();
 
                         if (titleElement != null) {

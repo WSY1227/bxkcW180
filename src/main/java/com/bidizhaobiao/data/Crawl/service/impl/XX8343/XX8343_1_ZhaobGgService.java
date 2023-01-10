@@ -215,8 +215,8 @@ public class XX8343_1_ZhaobGgService extends SpiderService implements PageProces
                             }
                         }
                         Element titleElement = contentElement.select("h1.w-ct-f").first();
-                        titleElement.select("span").remove();
                         if (titleElement != null) {
+                            titleElement.select("span").remove();
                             title = titleElement.text().trim();
                         }
                         contentElement.select("div.ClickIMG").remove();
