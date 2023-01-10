@@ -1,10 +1,9 @@
-package com.bidizhaobiao.data.Crawl.service.impl.XX8343;
+package com.bidizhaobiao.data.Crawl.service.impl.SJ_24721;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
-import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,32 +23,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-10
- * 原网站：http://www.mmsjx.com/News/gonggao/
- * 主页：http://www.mmsjx.com
+ * 程序员：徐文帅 日期：2023-01-11
+ * 原网站：http://www.shandongdezhong.com/news2/list-11.html
+ * 主页：http://www.shandongdezhong.com
  **/
 @Service
-public class XX8343_1_ZhongbXxService extends SpiderService implements PageProcessor {
+public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.mmsjx.com/News/gonggao/";
-    public String baseUrl = "http://www.mmsjx.com";
+    public String listUrl = "http://www.shandongdezhong.com/news2/list-11.html";
+    public String baseUrl = "http://www.shandongdezhong.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "XX8343-1";
+    public String sourceNum = "24721-1";
     // 网站名称
-    public String sourceName = "茂名市高级技工学校";
+    public String sourceName = "山东得众建设项目管理有限公司";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华南";
+    public String area = "华东";
     // 设置省份
-    public String province = "广东";
+    public String province = "山东";
     // 设置城市
-    public String city = "茂名";
+    public String city;
     // 设置县
-    public String district = "茂南";
+    public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,14 +78,15 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/gonggao")) {
+            if (url.contains("/list")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".tabtit>ul>li");
+                Elements listElement = doc.select(".ulstyle.met-pager-ajax.imagesize>li");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = baseUrl + link.substring(2);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -97,10 +97,6 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (title.contains("评审结果")) continue;
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
-                            continue;
-                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -118,9 +114,9 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("#pages a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("/gonggao") && serviceContext.isNeedCrawl()) {
-                    String href = baseUrl + nextPage.attr("href").trim();
+                Element nextPage = doc.select("a:contains(下一页)").first();
+                if (nextPage != null && nextPage.attr("href").contains("/list") && serviceContext.isNeedCrawl()) {
+                    String href = baseUrl + nextPage.attr("href").trim().substring(2);
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -134,7 +130,7 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("#Article").first();
+                    Element contentElement = doc.select("section.met-editor.clearfix").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -205,16 +201,10 @@ public class XX8343_1_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h1.w-ct-f").first();
+                        Element titleElement = contentElement.select("h4").first();
                         if (titleElement != null) {
-                            titleElement.select("span").remove();
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.ClickIMG").remove();
-                        contentElement.select("div.related").remove();
-                        contentElement.select("div.shareBox").remove();
-                        contentElement.select("p.keyword").remove();
-                        contentElement.select("p.f14").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
