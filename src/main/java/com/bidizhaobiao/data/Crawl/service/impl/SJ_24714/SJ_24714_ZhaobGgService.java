@@ -121,7 +121,7 @@ public class SJ_24714_ZhaobGgService extends SpiderService implements PageProces
                     dealWithNullListPage(serviceContext);
                 }
                 Element nextPage = doc.select("#pages a:contains(下页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("/keti") && serviceContext.isNeedCrawl()) {
+                if (nextPage != null && nextPage.attr("href").contains("list") && serviceContext.isNeedCrawl()) {
                     String href = listUrl + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
