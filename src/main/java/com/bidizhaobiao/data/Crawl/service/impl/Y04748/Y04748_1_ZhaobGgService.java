@@ -17,22 +17,14 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
 
-import javax.imageio.ImageIO;
-import javax.xml.bind.DatatypeConverter;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-09
+ * 程序员：徐文帅 日期：2023-01-10
  * 原网站：http://www.plxrmyy.com/col.jsp?id=131
  * 主页：http://www.plxrmyy.com
  **/
@@ -129,12 +121,6 @@ public class Y04748_1_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-//                Element nextPage = doc.select("a:contains(下一页)").first();
-//                if (nextPage != null && nextPage.attr("href").contains("&page=") && serviceContext.isNeedCrawl()) {
-//                    String href = baseUrl + nextPage.attr("href").trim();
-//                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-//                    page.addTargetRequest(href);
-//                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -150,6 +136,10 @@ public class Y04748_1_ZhaobGgService extends SpiderService implements PageProces
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
                             String href = a.attr("href");
+                            if (href.contains("file://")) {
+                                a.remove();
+                                continue;
+                            }
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;

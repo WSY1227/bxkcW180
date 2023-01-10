@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-09
+ * 程序员：徐文帅 日期：2023-01-10
  * 原网站：http://www.plxrmyy.com/col.jsp?id=131
  * 主页：http://www.plxrmyy.com
  **/
@@ -55,7 +55,7 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
-          return this.site;
+        return this.site;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
@@ -74,7 +74,7 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
         saveCrawlResult(serviceContext);
     }
 
-        public void process(Page page) {
+    public void process(Page page) {
         String url = page.getUrl().toString();
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
@@ -101,7 +101,7 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title))  {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -121,12 +121,6 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-//                Element nextPage = doc.select("a:contains(下一页)").first();
-//                if (nextPage != null && nextPage.attr("href").contains("&page=") && serviceContext.isNeedCrawl()) {
-//                    String href = baseUrl + nextPage.attr("href").trim();
-//                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-//                    page.addTargetRequest(href);
-//                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -142,6 +136,10 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
                             String href = a.attr("href");
+                            if (href.contains("file://")) {
+                                a.remove();
+                                continue;
+                            }
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
@@ -216,7 +214,7 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
-                    }else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
+                    } else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
                     }
@@ -237,8 +235,6 @@ public class Y04748_1_ZhongbXxService extends SpiderService implements PageProce
             dealWithError(url, serviceContext, e);
         }
     }
-
-
 
 
 }
