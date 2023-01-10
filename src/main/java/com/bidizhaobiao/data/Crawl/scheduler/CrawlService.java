@@ -128,7 +128,7 @@ public class CrawlService {
             if (startCrawlList.size() == 0) {
 //                startCrawlList = fileReadUtil.selectConfig();
 
-                startCrawlList.add("SJ_24714_ZhaobGgService");
+                startCrawlList.add("QX_24724_ZhaobGgService");
                 //存储配置信息
                 insertConfig(startCrawlList);
             }

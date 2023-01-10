@@ -203,6 +203,16 @@ public class QX_24724_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
+                        Element titleElement = doc.select(".w610.bt>.title").first();
+                        if (titleElement != null) {
+                            title = titleElement.text().trim();
+                        }
+                        Matcher dateMat = datePat.matcher(doc.select(".w610.bt>.item").first().text());
+                        if (dateMat.find()) {
+                            date = dateMat.group(1);
+                            date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
+                            date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
+                        }
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
@@ -210,16 +220,7 @@ public class QX_24724_ZhaobGgService extends SpiderService implements PageProces
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
                     }
-                    Element titleElement = contentElement.select(".w610.bt>.title").first();
-                    if (titleElement != null) {
-                        title = titleElement.text().trim();
-                    }
-                    Matcher dateMat = datePat.matcher(doc.select(".w610.bt>.item").first().text());
-                    if (dateMat.find()) {
-                        date = dateMat.group(1);
-                        date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
-                        date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
-                    }
+
                     RecordVO recordVO = new RecordVO();
                     recordVO.setId(branch.getId());
                     recordVO.setListTitle(branch.getTitle());
