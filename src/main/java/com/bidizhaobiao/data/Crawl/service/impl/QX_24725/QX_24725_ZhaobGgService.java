@@ -101,7 +101,6 @@ public class QX_24725_ZhaobGgService extends SpiderService implements PageProces
                         if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
                             continue;
                         }
-
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
