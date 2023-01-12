@@ -1,9 +1,10 @@
-package com.bidizhaobiao.data.Crawl.service.impl.SJ_24721;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24734;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
+import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,30 +24,30 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-11
- * 原网站：http://www.shandongdezhong.com/news2/list-11.html
- * 主页：http://www.shandongdezhong.com
+ * 程序员：徐文帅 日期：2023-01-12
+ * 原网站：http://www.zgnlc.gov.cn/channels/11920.html
+ * 主页：http://www.zgnlc.gov.cn
  **/
 @Service
-public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DS_24734_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.shandongdezhong.com/news2/list-11.html";
-    public String baseUrl = "http://www.shandongdezhong.com";
+    public String listUrl = "http://www.zgnlc.gov.cn/channels/11920.html";
+    public String baseUrl = "http://www.zgnlc.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24721-1";
+    public String sourceNum = "24734-1";
     // 网站名称
-    public String sourceName = "山东得众建设项目管理有限公司";
+    public String sourceName = "平顶山尼龙新材料产业集聚区管理委员会";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华中";
     // 设置省份
-    public String province = "山东";
+    public String province = "河南";
     // 设置城市
-    public String city;
+    public String city = "平顶山";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -78,15 +79,14 @@ public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProc
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/list")) {
+            if (url.contains("/channels")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".ulstyle.met-pager-ajax.imagesize>li");
+                Elements listElement = doc.select("ul.list li:has(a)");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link.substring(2);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -97,6 +97,9 @@ public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProc
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -114,9 +117,9 @@ public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProc
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("/list") && serviceContext.isNeedCrawl()) {
-                    String href = baseUrl + nextPage.attr("href").trim().substring(2);
+                Element nextPage = doc.select(".page a:contains(>)").first();
+                if (nextPage != null && nextPage.attr("href").contains("/channels") && serviceContext.isNeedCrawl()) {
+                    String href = nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -130,7 +133,7 @@ public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProc
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("section.met-editor.clearfix").first();
+                    Element contentElement = doc.select("#Content").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -201,10 +204,13 @@ public class SJ_24721_1_ZhaobGgService extends SpiderService implements PageProc
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h4").first();
+                        Element titleElement = contentElement.select("h2.title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
+                        contentElement.select("div.print").remove();
+                        contentElement.select("div.source").remove();
+                        contentElement.select("div.location").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
