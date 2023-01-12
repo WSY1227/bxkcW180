@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DX013307;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013309;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-11
- * 原网站：http://www.xyrbank.com/noticecenter.html
- * 主页：http://www.xyrbank.com
+ * 程序员：徐文帅 日期：2023-01-12
+ * 原网站：http://www.zzdb.net/comnews/
+ * 主页：http://www.zzdb.net
  **/
 @Service
-public class DX013307_1_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DX013309_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.xyrbank.com/noticecenter.html";
-    public String baseUrl = "http://www.xyrbank.com";
+    public String listUrl = "http://www.zzdb.net/comnews/";
+    public String baseUrl = "http://www.zzdb.net";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "DX013307-1";
+    public String sourceNum = "DX013309";
     // 网站名称
-    public String sourceName = "宜宾兴宜村镇银行";
+    public String sourceName = "郑州中小企业融资担保有限公司";
     // 信息源
     public String infoSource = "企业采购";
     // 设置地区
-    public String area = "西南";
+    public String area = "华中";
     // 设置省份
-    public String province = "四川";
+    public String province = "河南";
     // 设置城市
-    public String city = "宜宾";
+    public String city = "郑州";
     // 设置县
-    public String district = "叙州";
+    public String district = "金水";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,20 +79,18 @@ public class DX013307_1_ZhaobGgService extends SpiderService implements PageProc
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/noticecenter")) {
+            if (url.contains("/page/") || url.equals(listUrl)) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".liebiao>ul>li");
+                Elements listElement = doc.select(".pcr-cent>ul>li:has(a)");
                 if (listElement.size() > 0) {
-                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link;
                         String detailLink = link;
+                        Elements timeElements = element.select(".time>span");
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(timeElements.last().text() + "-" + timeElements.first().text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
@@ -100,7 +98,7 @@ public class DX013307_1_ZhaobGgService extends SpiderService implements PageProc
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -121,7 +119,7 @@ public class DX013307_1_ZhaobGgService extends SpiderService implements PageProc
                     dealWithNullListPage(serviceContext);
                 }
                 Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("/noticecenter") && serviceContext.isNeedCrawl()) {
+                if (nextPage != null && nextPage.attr("href").contains("/page/") && serviceContext.isNeedCrawl()) {
                     String href = baseUrl + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
@@ -136,7 +134,7 @@ public class DX013307_1_ZhaobGgService extends SpiderService implements PageProc
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.neirong").first();
+                    Element contentElement = doc.select("div.pcr-cent").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -207,11 +205,13 @@ public class DX013307_1_ZhaobGgService extends SpiderService implements PageProc
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h1").first();
+                        Element titleElement = contentElement.select("div.artdetail_title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("br").last().nextElementSibling().remove();
+                        contentElement.select("div.artview_info").remove();
+                        contentElement.select("div.prevlist").remove();
+                        contentElement.select("div.nextlist").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
