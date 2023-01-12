@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.QX_24725;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013310;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-11
- * 原网站：https://www.gzsy.org.cn/tzgg.jhtml
- * 主页：https://www.gzsy.org.cn
+ * 程序员：徐文帅 日期：2023-01-12
+ * 原网站：http://www.bjnydb.com.cn/xxgk.html
+ * 主页：http://www.bjnydb.com.cn
  **/
 @Service
-public class QX_24725_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DX013310_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://www.gzsy.org.cn/tzgg.jhtml";
-    public String baseUrl = "https://www.gzsy.org.cn";
+    public String listUrl = "http://www.bjnydb.com.cn/xxgk.html";
+    public String baseUrl = "http://www.bjnydb.com.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24725";
+    public String sourceNum = "DX013310";
     // 网站名称
-    public String sourceName = "广州市社会主义学院";
+    public String sourceName = "北京市农业融资担保有限公司";
     // 信息源
-    public String infoSource = "政府采购";
+    public String infoSource = "企业采购";
     // 设置地区
-    public String area = "华南";
+    public String area = "华北";
     // 设置省份
-    public String province = "广东";
+    public String province = "北京";
     // 设置城市
-    public String city = "广州";
+    public String city;
     // 设置县
-    public String district = "越秀";
+    public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,25 +79,26 @@ public class QX_24725_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (!url.contains("/tzgg/")) {
+            if (url.contains("/xxgk")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".list-news.media-list.list-tw>ul>li>a");
+                Elements listElement = doc.select("ul.nddt_con.clearFix>li:has(a)");
                 if (listElement.size() > 0) {
                     String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
-                    for (Element a : listElement) {
+                    for (Element element : listElement) {
+                        Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
                         link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(a.select(".item-date.text-right").text());
+                        Matcher dateMat = datePat.matcher(element.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.select(".item-title").first().text().trim();
+                        String title = a.select("h4").first().text().trim();
                         if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
                             continue;
                         }
@@ -118,13 +119,6 @@ public class QX_24725_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("onclick").contains("tzgg") && serviceContext.isNeedCrawl()) {
-                    int nextPageNum = serviceContext.getPageNum() + 1;
-                    String href = "https://www.gzsy.org.cn/tzgg_" + nextPageNum + ".jhtml";
-                    serviceContext.setPageNum(nextPageNum);
-                    page.addTargetRequest(href);
-                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -135,7 +129,7 @@ public class QX_24725_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.detail-content").first();
+                    Element contentElement = doc.select("#detial").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -210,7 +204,7 @@ public class QX_24725_ZhaobGgService extends SpiderService implements PageProces
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.tyc_time").remove();
+                        contentElement.select("div.info").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
