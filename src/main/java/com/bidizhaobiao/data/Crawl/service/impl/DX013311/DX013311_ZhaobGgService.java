@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DX013307;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013311;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,22 +24,22 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-11
- * 原网站：http://www.xyrbank.com/noticecenter.html
- * 主页：http://www.xyrbank.com
+ * 程序员：徐文帅 日期：2023-01-12
+ * 原网站：https://www.scsjydb.com/jydb/xxgk/gsgg46/index.html
+ * 主页：https://www.scsjydb.com
  **/
 @Service
-public class DX013307_1_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DX013311_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.xyrbank.com/noticecenter.html";
-    public String baseUrl = "http://www.xyrbank.com";
+    public String listUrl = "https://www.scsjydb.com/jydb/xxgk/gsgg46/index.html";
+    public String baseUrl = "https://www.scsjydb.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "DX013307-1";
+    public String sourceNum = "DX013311";
     // 网站名称
-    public String sourceName = "宜宾兴宜村镇银行";
+    public String sourceName = "金玉担保";
     // 信息源
     public String infoSource = "企业采购";
     // 设置地区
@@ -47,9 +47,9 @@ public class DX013307_1_ZhongbXxService extends SpiderService implements PagePro
     // 设置省份
     public String province = "四川";
     // 设置城市
-    public String city = "宜宾";
+    public String city = "成都";
     // 设置县
-    public String district = "叙州";
+    public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,14 +79,14 @@ public class DX013307_1_ZhongbXxService extends SpiderService implements PagePro
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/noticecenter")) {
+            if (!url.contains("/index.html") || url.equals(listUrl)) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".liebiao>ul>li");
+                Elements listElement = doc.select(".list_wz>ul>li:has(a)");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("/") + 1);
+                        String id = link.split("/")[4];
                         link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
@@ -98,7 +98,8 @@ public class DX013307_1_ZhongbXxService extends SpiderService implements PagePro
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        if (title.contains("注册")) continue;
+                        if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -118,9 +119,9 @@ public class DX013307_1_ZhongbXxService extends SpiderService implements PagePro
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("/noticecenter") && serviceContext.isNeedCrawl()) {
-                    String href = baseUrl + nextPage.attr("href").trim();
+                Element nextPage = doc.select("a.fy_x").first();
+                if (nextPage != null && nextPage.attr("onclick").contains("queryArticleByCondition") && serviceContext.isNeedCrawl()) {
+                    String href = baseUrl + nextPage.attr("tagname").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -134,7 +135,7 @@ public class DX013307_1_ZhongbXxService extends SpiderService implements PagePro
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.neirong").first();
+                    Element contentElement = doc.select("#dy").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -205,11 +206,12 @@ public class DX013307_1_ZhongbXxService extends SpiderService implements PagePro
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h1").first();
+                        Element titleElement = contentElement.select("div.tit").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("br").last().nextElementSibling().remove();
+                        contentElement.select("#dw").remove();
+                        contentElement.select("div.sub").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
