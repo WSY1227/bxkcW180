@@ -90,7 +90,7 @@ public class DS_24737_ZhaobGgService extends SpiderService implements PageProces
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(1);
-                        link = url.substring(0, url.lastIndexOf("/") + 1) + id;
+                        link = url.substring(0, url.lastIndexOf("/")) + id;
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
