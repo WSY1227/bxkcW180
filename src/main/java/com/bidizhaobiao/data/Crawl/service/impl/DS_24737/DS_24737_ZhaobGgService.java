@@ -122,9 +122,11 @@ public class DS_24737_ZhaobGgService extends SpiderService implements PageProces
                     dealWithNullListPage(serviceContext);
                 }
                 Matcher pageCountTxt = Pattern.compile("(\\d+)").matcher(doc.select("td>script").toString());
-                int pageCount = pageCountTxt.find() ? Integer.parseInt(pageCountTxt.group()) : 1;
                 int pageNum = serviceContext.getPageNum();
-                if (pageNum < pageCount && serviceContext.isNeedCrawl()) {
+                if (pageNum == 1) {
+                    serviceContext.setMaxPage(pageCountTxt.find() ? Integer.parseInt(pageCountTxt.group()) : 1);
+                }
+                if (pageNum < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     String href = "http://rsj.longyan.gov.cn/zwgk/gsgg/index_" + pageNum + ".htm";
                     page.addTargetRequest(href);
                     serviceContext.setPageNum(++pageNum);
