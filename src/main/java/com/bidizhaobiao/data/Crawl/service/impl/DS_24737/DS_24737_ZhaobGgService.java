@@ -81,11 +81,11 @@ public class DS_24737_ZhaobGgService extends SpiderService implements PageProces
             Thread.sleep(500);
             if (url.contains("/index")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("body > table:nth-child(3) > tbody > tr > td:nth-child(3) > table");
+                Elements listElement = doc.select("body > table:nth-child(3) > tbody > tr > td:nth-child(3) > table tr");
                 if (listElement.size() > 0) {
                     String key = "承办、询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
-                    for (int i = 0; i < listElement.size()-1; i++) {
+                    for (int i = 0; i < listElement.size() - 1; i++) {
                         Element element = listElement.get(i);
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
