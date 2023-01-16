@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24735;
+package com.bidizhaobiao.data.Crawl.service.impl.SJ_24740;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,35 +24,35 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-13
- * 原网站：http://gxj.longyan.gov.cn/xxgk/ggtg/
- * 主页：http://gxj.longyan.gov.cn
+ * 程序员：徐文帅 日期：2023-01-16
+ * 原网站：首页/抓取首页下方招标信息
+ * 主页：http://www.gdrunjing.com
  **/
 @Service
-public class DS_24735_ZhongbXxService extends SpiderService implements PageProcessor {
+public class SJ_24740_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://gxj.longyan.gov.cn/xxgk/ggtg/index.htm";
-    public String baseUrl = "http://gxj.longyan.gov.cn/xxgk/ggtg/";
+    public String listUrl = "http://www.gdrunjing.com/";
+    public String baseUrl = "http://www.gdrunjing.com/";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24735";
+    public String sourceNum = "24740-1";
     // 网站名称
-    public String sourceName = "龙岩市工业和信息化局";
+    public String sourceName = "广东润景工程咨询有限公司";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华南";
     // 设置省份
-    public String province = "福建";
+    public String province = "广东";
     // 设置城市
-    public String city = "龙岩";
+    public String city;
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setCharset("GBK");
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
@@ -79,15 +79,14 @@ public class DS_24735_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/index")) {
+            if (url.equals(listUrl)) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".bk1>.xjj").last().select("tr");
+                Elements listElement = doc.select("div.article_list-layer82AD721339FFA941EF14C907F0712690>ul>li");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
-                        Element a = element.select("a").first();
+                        Element a = element.select("a.articleid.memberoff").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = url.substring(0, url.lastIndexOf("/") + 1) + link.substring(2);
+                        String id = link.substring(link.lastIndexOf("?") + 1);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -98,7 +97,7 @@ public class DS_24735_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -118,14 +117,6 @@ public class DS_24735_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Matcher pageCountTxt = Pattern.compile("(\\d+)").matcher(doc.select("td>script").toString());
-                int pageCount = pageCountTxt.find() ? Integer.parseInt(pageCountTxt.group()) : 1;
-                int pageNum = serviceContext.getPageNum();
-                if (pageNum < pageCount && serviceContext.isNeedCrawl()) {
-                    String href = "http://gxj.longyan.gov.cn/xxgk/ggtg/index_" + pageNum + ".htm";
-                    page.addTargetRequest(href);
-                    serviceContext.setPageNum(++pageNum);
-                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -136,7 +127,7 @@ public class DS_24735_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("td.bk1").first();
+                    Element contentElement = doc.select("div.wp-article_detail_content").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -207,13 +198,12 @@ public class DS_24735_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Elements trElement = contentElement.select("tr");
-                        Element titleElement = trElement.first();
+                        Element titleElement = contentElement.select("div.artdetail_title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        trElement.get(1).remove();
-                        trElement.select("#appendix:has(a)").removeAttr("style");
+                        contentElement.select("div.artview_info").remove();
+                        contentElement.select("div.artview_prev_next").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();

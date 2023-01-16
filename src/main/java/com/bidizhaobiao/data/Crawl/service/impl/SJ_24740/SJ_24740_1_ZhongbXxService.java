@@ -1,9 +1,10 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24743;
+package com.bidizhaobiao.data.Crawl.service.impl.SJ_24740;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
+import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,30 +24,30 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-13
- * 原网站：http://www.jfagroup.com/news/16/
- * 主页：http://www.jfagroup.com
+ * 程序员：徐文帅 日期：2023-01-16
+ * 原网站：首页/抓取首页下方招标信息
+ * 主页：http://www.gdrunjing.com
  **/
 @Service
-public class DS_24743_ZhaobGgService extends SpiderService implements PageProcessor {
+public class SJ_24740_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.jfagroup.com/news/16/";
-    public String baseUrl = "http://www.jfagroup.com";
+    public String listUrl = "http://www.gdrunjing.com/";
+    public String baseUrl = "http://www.gdrunjing.com/";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24743";
+    public String sourceNum = "24740-1";
     // 网站名称
-    public String sourceName = "江苏建发建设项目咨询有限公司";
+    public String sourceName = "广东润景工程咨询有限公司";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华南";
     // 设置省份
-    public String province = "江苏";
+    public String province = "广东";
     // 设置城市
-    public String city = "南京";
+    public String city;
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -78,26 +79,27 @@ public class DS_24743_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (!url.contains(".html")) {
+            if (url.contains("&page=")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("div.newList:has(a)");
+                Elements listElement = doc.select("div.article_list-layer82AD721339FFA941EF14C907F0712690>ul>li");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
-                        Element a = element.select("a").first();
+                        Element a = element.select("a.articleid.memberoff").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link;
+                        String id = link.substring(link.lastIndexOf("?") + 1);
                         String detailLink = link;
                         String date = "";
-                        Elements timeBox = element.select(".leftTimeBox>div");
-                        Matcher dateMat = datePat.matcher(timeBox.last().text() + "-" + timeBox.first().text());
+                        Matcher dateMat = datePat.matcher(element.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.select(".newTitle").text().trim();
+                        String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -125,7 +127,7 @@ public class DS_24743_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.stylebox_content").first();
+                    Element contentElement = doc.select("div.wp-article_detail_content").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -196,14 +198,12 @@ public class DS_24743_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div.e_box.p_topBox").first();
+                        Element titleElement = contentElement.select("div.artdetail_title").first();
                         if (titleElement != null) {
-                            contentElement.select("ul").remove();
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.e_box.d_pcDom.p_PrevAndNext").remove();
-                        contentElement.select("div.e_box.p_PrevAndNextMo.p_PrevAndNext").remove();
-                        contentElement.select("a:contains(返回列表)").remove();
+                        contentElement.select("div.artview_info").remove();
+                        contentElement.select("div.artview_prev_next").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
