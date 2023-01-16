@@ -98,7 +98,7 @@ public class XX8371_1_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -201,10 +201,11 @@ public class XX8371_1_ZhongbXxService extends SpiderService implements PageProce
                         }
                         Element titleElement = contentElement.select("div.nr_title").first();
                         if (titleElement != null) {
+                            titleElement.select("p").remove();
                             title = titleElement.text().trim();
                         }
+                        contentElement.select(".fujian:not(:has(a))").remove();
                         contentElement.select("div.lmbt").remove();
-                        contentElement.select("div.nr_content").remove();
                         contentElement.select("div.prenext").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();

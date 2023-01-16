@@ -201,10 +201,11 @@ public class XX8371_1_ZhaobGgService extends SpiderService implements PageProces
                         }
                         Element titleElement = contentElement.select("div.nr_title").first();
                         if (titleElement != null) {
+                            titleElement.select("p").remove();
                             title = titleElement.text().trim();
                         }
+                        contentElement.select(".fujian:not(:has(a))").remove();
                         contentElement.select("div.lmbt").remove();
-                        contentElement.select("div.nr_content").remove();
                         contentElement.select("div.prenext").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
