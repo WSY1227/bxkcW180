@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24738;
+package com.bidizhaobiao.data.Crawl.service.impl.QX_24739;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-13
- * 原网站：http://wlj.longyan.gov.cn/zwgk/gggs/
- * 主页：http://wlj.longyan.gov.cn
+ * 程序员：徐文帅 日期：2023-01-16
+ * 原网站：http://www.zzety.cn/?list-18.html
+ * 主页：http://www.zzety.cn
  **/
 @Service
-public class DS_24738_ZhaobGgService extends SpiderService implements PageProcessor {
+public class QX_24739_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://wlj.longyan.gov.cn/zwgk/gggs/index.htm";
-    public String baseUrl = "http://wlj.longyan.gov.cn/zwgk/gggs/";
+    public String listUrl = "http://www.zzety.cn/?list-18.html";
+    public String baseUrl = "http://www.zzety.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24738";
+    public String sourceNum = "24739-1";
     // 网站名称
-    public String sourceName = "龙岩市文化和旅游局";
+    public String sourceName = "株洲市儿童社会福利院";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华中";
     // 设置省份
-    public String province = "福建";
+    public String province = "湖南";
     // 设置城市
-    public String city = "龙岩";
+    public String city = "株洲";
     // 设置县
-    public String district;
+    public String district = "芦淞";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,20 +79,17 @@ public class DS_24738_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/index")) {
+            if (url.contains("?list")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("ul.zx_ul>li:has(a)");
+                Elements listElement = doc.select(".newsCon>.more_news_box:has(a)");
                 if (listElement.size() > 0) {
-                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(1);
-                        link = url.substring(0, url.lastIndexOf("/")) + id;
+                        String id = link.substring(link.lastIndexOf("?") + 1);
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(element.select("li.b").text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
@@ -100,7 +97,7 @@ public class DS_24738_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -120,14 +117,9 @@ public class DS_24738_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                if (serviceContext.getPageNum() == 1) {
-                    Matcher matcher = Pattern.compile(", '(\\d+)', '0'").matcher(doc.select(".fy_list script").outerHtml());
-                    if (matcher.find()) {
-                        serviceContext.setMaxPage(Integer.parseInt(matcher.group(1)));
-                    }
-                }
-                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
-                    String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
+                Element nextPage = doc.select("a:contains(下一页)").first();
+                if (nextPage != null && nextPage.attr("href").contains("?list") && serviceContext.isNeedCrawl()) {
+                    String href = baseUrl + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -141,7 +133,7 @@ public class DS_24738_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.xl").first();
+                    Element contentElement = doc.select("div.wenzhang").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -212,12 +204,12 @@ public class DS_24738_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div.xl_top").first();
+                        Element titleElement = contentElement.select("h1").first();
                         if (titleElement != null) {
-                            titleElement.select(".xl_tit2").remove();
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("#appendix:has(a)").removeAttr("style");
+                        contentElement.select("div.wenzhang_z").remove();
+                        contentElement.select("div.wenzhang_bottom").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
