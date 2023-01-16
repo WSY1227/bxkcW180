@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24736;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24748;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,30 +24,30 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-13
- * 原网站：http://lysmzzjj.longyan.gov.cn/gzdt/yw/
- * 主页：http://lysmzzjj.longyan.gov.cn
+ * 程序员：徐文帅 日期：2023-01-16
+ * 原网站：http://wwj.baoji.gov.cn/col/col1889/index.html
+ * 主页：http://wwj.baoji.gov.cn
  **/
 @Service
-public class DS_24736_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DS_24748_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://lysmzzjj.longyan.gov.cn/gzdt/yw/index.htm";
-    public String baseUrl = "http://lysmzzjj.longyan.gov.cn";
+    public String listUrl = "http://wwj.baoji.gov.cn/col/col1889/index.html";
+    public String baseUrl = "http://wwj.baoji.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24736";
+    public String sourceNum = "24748-1";
     // 网站名称
-    public String sourceName = "龙岩市民族与宗教事务局";
+    public String sourceName = "宝鸡市文物局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "西北";
     // 设置省份
-    public String province = "福建";
+    public String province = "陕西";
     // 设置城市
-    public String city = "龙岩";
+    public String city = "宝鸡";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -79,15 +79,17 @@ public class DS_24736_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/index")) {
-                Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".wzlbbk>.xjj").first().nextElementSibling().select("tr");
+            if (url.contains("/col")) {
+                Document doc = Jsoup.parse(page.getRawText().replace("<![CDATA[", "").replace("]]>", ""));
+                Elements listElement = Jsoup.parse(doc.select("#7579 script").first().html()).select("li");
                 if (listElement.size() > 0) {
+                    String key = "招募、询标、交易、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、择选、择优、选取、优选、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
+                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = url.substring(0, url.lastIndexOf("/") + 1) + link.substring(2);
+                        link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -98,7 +100,7 @@ public class DS_24736_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -118,16 +120,6 @@ public class DS_24736_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Matcher pageCountTxt = Pattern.compile("(\\d+)").matcher(doc.select("td>script").toString());
-                int pageNum = serviceContext.getPageNum();
-                if (pageNum == 1) {
-                    serviceContext.setMaxPage(pageCountTxt.find() ? Integer.parseInt(pageCountTxt.group()) : 1);
-                }
-                if (pageNum < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
-                    String href = "http://lysmzzjj.longyan.gov.cn/gzdt/yw/index_" + pageNum + ".htm";
-                    page.addTargetRequest(href);
-                    serviceContext.setPageNum(++pageNum);
-                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -138,7 +130,7 @@ public class DS_24736_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("td.bk>table").first();
+                    Element contentElement = doc.select("div.hdpd2").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -209,13 +201,14 @@ public class DS_24736_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Elements trElement = contentElement.select("tr");
-                        Element titleElement = trElement.first();
+                        Element titleElement = contentElement.select("h2").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        trElement.get(1).remove();
-                        trElement.select("#appendix:has(a)").removeAttr("style");
+                        contentElement.select("div.adress").remove();
+                        contentElement.select("div.ly").remove();
+                        contentElement.select("div.dg").remove();
+                        contentElement.select("#pre").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
