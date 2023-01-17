@@ -115,7 +115,7 @@ public class DX013354_1_ZhaobGgService extends SpiderService implements PageProc
                     dealWithNullListPage(serviceContext);
                 }
                 Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("/index") && serviceContext.isNeedCrawl()) {
+                if (nextPage != null && nextPage.attr("href").contains("index") && serviceContext.isNeedCrawl()) {
                     String href = url.substring(0, url.lastIndexOf("/") + 1) + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
