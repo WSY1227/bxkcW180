@@ -207,7 +207,7 @@ public class DX013354_2_ZhongbXxService extends SpiderService implements PagePro
                             titleElement.nextElementSibling().remove();
                         }
                         contentElement.select("div.hd p.titBar").remove();
-                        contentElement.select(">ul").remove();
+                        contentElement.select("ul").last().remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
