@@ -121,7 +121,6 @@ public class DS_24803_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("a:contains(下一页)").first();
                 if (serviceContext.getPageNum() == 1) {
                     int count = Integer.valueOf(doc.select(".pagination").first().attr("count"));
                     serviceContext.setMaxPage(count / 20);
