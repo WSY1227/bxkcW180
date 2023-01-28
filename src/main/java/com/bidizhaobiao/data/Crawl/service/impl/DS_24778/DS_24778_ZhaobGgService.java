@@ -207,6 +207,7 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
                             title = titleElement.text().trim();
                         }
                         contentElement.select("div.bt-box-small-title.clearfix").remove();
+                        contentElement.select("div.bt-box-assist.clearfix").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
