@@ -122,7 +122,7 @@ public class DS_24801_ZhaobGgService extends SpiderService implements PageProces
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    String href = "http://leisure.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=85e35a107e9d4ba4ae2a9c6f45204026&pageId=e1811c9d19e3479f983264640c2bd321&parseType=bulidstatic&pageType=column&tagId=%E5%86%85%E5%AE%B9%E5%88%97%E8%A1%A8&tplSetId=e9d9fb173978477b8a4db3ef38568191&paramJson=%7B%22pageNo%22%3A1" + serviceContext.getPageNum() + "%2C%22pageSize%22%3A15%7D";
+                    String href = "http://leisure.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=85e35a107e9d4ba4ae2a9c6f45204026&pageId=e1811c9d19e3479f983264640c2bd321&parseType=bulidstatic&pageType=column&tagId=%E5%86%85%E5%AE%B9%E5%88%97%E8%A1%A8&tplSetId=e9d9fb173978477b8a4db3ef38568191&paramJson=%7B%22pageNo%22%3A" + serviceContext.getPageNum() + "%2C%22pageSize%22%3A15%7D";
                     page.addTargetRequest(href);
                 }
             } else {
@@ -215,6 +215,7 @@ public class DS_24801_ZhaobGgService extends SpiderService implements PageProces
                                 date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                                 date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                             }
+                            titleElement.remove();
                             title = titleElement.text().trim();
                         }
                         contentElement.select("script").remove();
