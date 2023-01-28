@@ -122,7 +122,7 @@ public class DS_24802_ZhongbXxService extends SpiderService implements PageProce
                 if (serviceContext.getPageNum() == 1) {
                     int count = Integer.valueOf(doc.select(".pagination").first().attr("count"));
                     serviceContext.setMaxPage(count / 12);
-                    if (count % 15 != 0) {
+                    if (count % 12 != 0) {
                         serviceContext.setMaxPage(serviceContext.getMaxPage() + 1);
                     }
                 }
