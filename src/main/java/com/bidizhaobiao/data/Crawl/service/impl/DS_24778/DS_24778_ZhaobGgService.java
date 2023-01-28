@@ -135,7 +135,7 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
-                            String href = a.attr("href");
+                            String href = a.attr("href").replace(" ", "");
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;

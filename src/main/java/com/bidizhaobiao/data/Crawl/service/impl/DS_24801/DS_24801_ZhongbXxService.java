@@ -137,7 +137,7 @@ public class DS_24801_ZhongbXxService extends SpiderService implements PageProce
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
-                            String href = a.attr("href");
+                            String href = a.attr("href").replace(" ", "");
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
