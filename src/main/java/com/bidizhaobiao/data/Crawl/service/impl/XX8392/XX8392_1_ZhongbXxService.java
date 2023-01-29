@@ -1,6 +1,5 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24778;
+package com.bidizhaobiao.data.Crawl.service.impl.XX8392;
 
-import com.alibaba.fastjson.JSON;
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
@@ -25,35 +24,35 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-28
- * 原网站：http://iaed.jaas.ac.cn/tzgg/index.html
- * 主页：http://iaed.jaas.ac.cn
+ * 程序员：徐文帅 日期：2023-01-29
+ * 原网站：http://www.hyssqz.com/?list_44/
+ * 主页：http://www.hyssqz.com
  **/
 @Service
-public class DS_24778_ZhaobGgService extends SpiderService implements PageProcessor {
+public class XX8392_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://iaed.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=57021677f1df431596707dc5dda40030&pageId=fb613ea9253841b18e8b9e4ab18fe047&parseType=bulidstatic&pageType=column&tagId=%E4%BF%A1%E6%81%AFlist&tplSetId=503ccbbd8f4d4417992c1f2dad9f46bd&paramJson=%7B%22pageNo%22%3A1%2C%22pageSize%22%3A75%7D";
-    public String baseUrl = "http://iaed.jaas.ac.cn";
+    public String listUrl = "http://www.hyssqz.com/?list_44/";
+    public String baseUrl = "http://www.hyssqz.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24778";
+    public String sourceNum = "XX8392-1";
     // 网站名称
-    public String sourceName = "江苏省农业科学院农业经济与发展研究所";
+    public String sourceName = "衡阳市第十七中学";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华中";
     // 设置省份
-    public String province = "江苏";
+    public String province = "湖南";
     // 设置城市
-    public String city = "南京市";
+    public String city = "衡阳";
     // 设置县
-    public String district;
+    public String district = "珠晖";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.76");
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
@@ -80,20 +79,18 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/api-gateway")) {
-                Document doc = Jsoup.parse(JSON.parseObject(page.getRawText()).getJSONObject("data").getString("html"));
-                Elements listElement = doc.select(".page-content ul>li:has(a)");
+            if (url.contains("?list_")) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select(".sNews-media-wrap>ul>li:has(a)");
                 if (listElement.size() > 0) {
-                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("/") + 1);
+                        String id = link.substring(link.lastIndexOf("?") + 1);
                         link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(element.select(".more.aftl").text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
@@ -101,7 +98,7 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -121,6 +118,12 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
+                Element nextPage = doc.select(".pageList a:contains(下一页)").first();
+                if (nextPage != null && nextPage.attr("href").contains("?list_") && serviceContext.isNeedCrawl()) {
+                    String href = baseUrl + nextPage.attr("href").trim();
+                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
+                    page.addTargetRequest(href);
+                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -131,11 +134,11 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.bt-box-content").first();
+                    Element contentElement = doc.select("div.sView-main").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
-                            String href = a.attr("href").replace(" ", "");
+                            String href = a.attr("href");
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
@@ -202,12 +205,12 @@ public class DS_24778_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("p.bt-box-title").first();
+                        Element titleElement = contentElement.select("div.sView-head").first();
                         if (titleElement != null) {
+                            titleElement.select(".aside").remove();
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.bt-box-small-title.clearfix").remove();
-                        contentElement.select("div.bt-box-assist.clearfix").remove();
+                        contentElement.select("div.sView-foot").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
