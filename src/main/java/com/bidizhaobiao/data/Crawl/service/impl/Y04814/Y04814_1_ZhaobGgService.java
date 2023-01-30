@@ -1,11 +1,10 @@
-package com.bidizhaobiao.data.Crawl.service.impl.SJ_24787;
+package com.bidizhaobiao.data.Crawl.service.impl.Y04814;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
+import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,64 +15,50 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.model.HttpRequestBody;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.utils.HttpConstant;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-29
- * 原网站：进入【http://sjt.qinghai.gov.cn/index.html?channel=3】法定主动公开内容/计划规划/21年计划规划
- * 主页：http://sjt.qinghai.gov.cn
+ * 程序员：徐文帅 日期：2023-01-30
+ * 原网站：http://www.yxsdsrmyy.com/info/c/9.html
+ * 主页：http://www.yxsdsrmyy.com
  **/
-@Service
-public class SJ_24787_ZhaobGgService extends SpiderService implements PageProcessor {
+@Service("Y04814_1_ZhaobGgService")
+public class Y04814_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://sjt.qinghai.gov.cn/gdnps/pc/searchIndex.jsp";
-    public String baseUrl = "http://sjt.qinghai.gov.cn";
+    public String listUrl = "http://www.yxsdsrmyy.com/info/c/9.html";
+    public String baseUrl = "http://www.yxsdsrmyy.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24787";
+    public String sourceNum = "Y04814-1";
     // 网站名称
-    public String sourceName = "青海省审计厅";
+    public String sourceName = "玉溪市第三人民医院";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "西北";
+    public String area = "西南";
     // 设置省份
-    public String province = "青海";
+    public String province = "云南";
     // 设置城市
-    public String city;
+    public String city = "玉溪";
     // 设置县
-    public String district;
+    public String district = "红塔";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
-
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
-        Request request = new Request(listUrl);
-        request.setMethod(HttpConstant.Method.POST);
-        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
-        //将键值对数组添加到map中
-        Map<String, Object> params = new HashMap<>();
-        params.put("type", "subcat");
-        params.put("code", "/1/113/182/495356/495507");
-        //设置request参数
-        request.setRequestBody(HttpRequestBody.form(params, "utf-8"));
         // 赋值
         serviceContextEvaluation();
         // 保存日志
@@ -82,7 +67,7 @@ public class SJ_24787_ZhaobGgService extends SpiderService implements PageProces
         // 启动爬虫
         spider = Spider.create(this).thread(ThreadNum)
                 .setDownloader(new MyDownloader(serviceContext, false, listUrl));
-        spider.addRequest(request);
+        spider.addRequest(new Request(listUrl));
         serviceContext.setSpider(spider);
         spider.run();
         // 爬虫状态监控部分
@@ -95,23 +80,25 @@ public class SJ_24787_ZhaobGgService extends SpiderService implements PageProces
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
             if (url.equals(listUrl)) {
-                JSONArray doc = JSONArray.parseArray(page.getRawText()).getJSONArray(0).getJSONObject(1).getJSONArray("resultMap");
-
-                if (doc.size() > 0) {
-                    for (int i = 0; i < doc.size(); i++) {
-                        JSONObject jsonCount = doc.getJSONObject(i);
-
-                        String id = jsonCount.getString("id");
-                        String link = baseUrl + "/gdnps/searchIndex.jsp?params=%7B%22goPage%22%3A1%2C%22orderBy%22%3A%5B%7B%22orderBy%22%3A%22scrq%22%2C%22reverse%22%3Atrue%7D%2C%7B%22orderBy%22%3A%22orderTime%22%2C%22reverse%22%3Atrue%7D%5D%2C%22pageSize%22%3A20%2C%22queryParam%22%3A%5B%7B%22shortName%22%3A%22id%22%2C%22value%22%3A%22" + id + "%22%7D%5D%7D";
-                        String detailLink = baseUrl + "/gdnps/content.jsp?id=" + id + "&mtype=3";
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select(".qwlb>a");
+                if (listElement.size() > 0) {
+                    for (Element a : listElement) {
+                        String link = a.attr("href").trim();
+                        String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = baseUrl + link;
+                        String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(SpecialUtil.date2Str(jsonCount.getDate("publishTime")));
+                        Matcher dateMat = datePat.matcher(a.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = jsonCount.getString("title");
+                        String title = a.select(".qwhz_right>p").text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -134,13 +121,12 @@ public class SJ_24787_ZhaobGgService extends SpiderService implements PageProces
                 if (branch != null) {
                     map.remove(url);
                     serviceContext.setCurrentRecord(branch.getId());
-                    String detailHtml = page.getRawText().substring(1);
-                    JSONObject detailJson = JSONObject.parseObject(detailHtml.substring(0, detailHtml.lastIndexOf(")"))).getJSONArray("resultMap").getJSONObject(0);
-                    Document doc = Jsoup.parse(detailJson.getString("htmlContent"));
+                    String detailHtml = page.getRawText();
+                    Document doc = Jsoup.parse(detailHtml);
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("#vsb_content").first();
+                    Element contentElement = doc.select("div.xqy_left").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -211,7 +197,12 @@ public class SJ_24787_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        title = detailJson.getString("title");
+                        Element titleElement = contentElement.select("div.xqy_left_top_top").first();
+                        if (titleElement != null) {
+                            title = titleElement.text().trim();
+                        }
+                        contentElement.select("div.xqy_left_top_foot").remove();
+                        contentElement.select("div.all_content_shangxia").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
