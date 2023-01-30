@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.SJ_24788;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013393;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -6,11 +6,6 @@ import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
 import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,30 +24,30 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-29
- * 原网站：https://sjj.sh.gov.cn/n393/index.html
- * 主页：https://sjj.sh.gov.cn
+ * 程序员：徐文帅 日期：2023-01-30
+ * 原网站：http://bsbc.bsjstzjt.com/list/bsjtbsbwPc/20/531/auto/20/0.html
+ * 主页：http://bsbc.bsjstzjt.com
  **/
 @Service
-public class SJ_24788_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DX013393_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://sjj.sh.gov.cn/n393/index.html";
-    public String baseUrl = "https://sjj.sh.gov.cn";
+    public String listUrl = "http://bsbc.bsjstzjt.com/font/mobile/paging?subsiteFlag=bsjtbsbwPc&subsiteId=20&newsClassId=531&pageType=auto&pageSize=20&start=1&objectId=&extendData=textImg";
+    public String baseUrl = "http://bsbc.bsjstzjt.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24788";
+    public String sourceNum = "DX013393-1";
     // 网站名称
-    public String sourceName = "上海市审计局";
+    public String sourceName = "保山建投昌源停车泊位管理有限公司";
     // 信息源
-    public String infoSource = "政府采购";
+    public String infoSource = "企业采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "西南";
     // 设置省份
-    public String province = "上海";
+    public String province = "云南";
     // 设置城市
-    public String city;
+    public String city = "保山";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -61,40 +56,6 @@ public class SJ_24788_ZhongbXxService extends SpiderService implements PageProce
 
     public Site getSite() {
         return this.site;
-    }
-
-    public String getContent(String path) {
-        String result = "";
-        CloseableHttpClient client = null;
-        CloseableHttpResponse response = null;
-        try {
-            client = getHttpClient(true, false);
-            HttpGet httpGet = new HttpGet(path);
-            httpGet.addHeader("User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0");
-            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(20 * 1000)
-                    .setSocketTimeout(30 * 1000).setRedirectsEnabled(false).build();
-            httpGet.setConfig(requestConfig);
-            response = client.execute(httpGet);
-            response.addHeader("Connection", "close");
-            if (response.getStatusLine().getStatusCode() == 200) {
-                result = EntityUtils.toString(response.getEntity(), "UTF-8");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-                if (client != null) {
-                    client.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
@@ -106,7 +67,7 @@ public class SJ_24788_ZhongbXxService extends SpiderService implements PageProce
         // 启动爬虫
         spider = Spider.create(this).thread(ThreadNum)
                 .setDownloader(new MyDownloader(serviceContext, false, listUrl));
-        spider.addRequest(new Request("https://www.baidu.com?wd=" + listUrl));
+        spider.addRequest(new Request(listUrl));
         serviceContext.setSpider(spider);
         spider.run();
         // 爬虫状态监控部分
@@ -118,33 +79,26 @@ public class SJ_24788_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            url = url.substring(url.indexOf("=") + 1);
-            String detailHtml = getContent(url);
-            int count = 2;
-            while ("".equals(detailHtml) && count > 0) {
-                detailHtml = getContent(url);
-                count--;
-            }
-            if (url.contains("/index")) {
-                Document doc = Jsoup.parse(detailHtml);
-                Elements listElement = doc.select(".yw2list>ul>li:has(a)");
+            if (url.contains("&start=")) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select(".wow.fadeInUp>a");
                 if (listElement.size() > 0) {
-                    for (Element element : listElement) {
-                        Element a = element.select("a").first();
+                    String key = "单位选聘、询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
+                    String[] keys = key.split("、");
+                    for (Element a : listElement) {
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
                         link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(a.select(".divT2").text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.attr("title").trim();
-                        if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        String title = a.select(".divT").text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -159,33 +113,28 @@ public class SJ_24788_ZhongbXxService extends SpiderService implements PageProce
                     List<BranchNew> branchNewList = checkData(detailList, serviceContext);
                     for (BranchNew branch : branchNewList) {
                         map.put(branch.getLink(), branch);
-                        page.addTargetRequest(new Request("https://www.baidu.com?wd=" + branch.getLink()));
+                        page.addTargetRequest(new Request(branch.getLink()));
                     }
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                if (serviceContext.getPageNum() == 1) {
-                    Pattern pattern = Pattern.compile("\\d+");
-                    Matcher matcher = pattern.matcher(doc.select(".pagination").first().outerHtml());
-                    while (matcher.find()) {
-                        serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
-                    }
-                }
-                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                Element nextPage = doc.select("input.paging").first();
+                if (nextPage != null && nextPage.attr("value").contains("&start=") && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
-                    page.addTargetRequest("https://www.baidu.com?wd=" + href);
+                    String href = listUrl.replace("start=1", "start=" + serviceContext.getPageNum());
+                    page.addTargetRequest(href);
                 }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
                     map.remove(url);
                     serviceContext.setCurrentRecord(branch.getId());
+                    String detailHtml = page.getRawText();
                     Document doc = Jsoup.parse(detailHtml);
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("#ivs_content>.yw2gjwen").first();
+                    Element contentElement = doc.select("div.articleBox").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -193,6 +142,9 @@ public class SJ_24788_ZhongbXxService extends SpiderService implements PageProce
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
+                            }
+                            if (href.contains(".doc") || href.contains(".pdf") || href.contains(".zip") || href.contains(".xls")) {
+                                a.text("附件下载：" + a.text());
                             }
                             if (href.contains("javascript") || href.equals("#")) {
                                 if (a.attr("onclick").contains("window.open('http")) {
@@ -256,13 +208,22 @@ public class SJ_24788_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = doc.select("#ivs_title").first();
+                        Element titleElement = contentElement.select("div.articleT.wow.fadeInUp").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
+                        titleElement.remove();
+                        contentElement.select("div.articleT2.wow.fadeInUp").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
+                        Element fileElement = doc.select("div.articleHand.wow.fadeInUp.animated:has(a)").first();
+                        if (fileElement != null) {
+                            contentElement.append(fileElement.outerHtml());
+                        }
                         content = contentElement.outerHtml();
+                        if (contentElement.text().trim().length() < 4 && contentElement.select("a").size() == 0 && contentElement.select("img").size() == 0) {
+                            return;
+                        }
                     } else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
