@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.XX8414;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013394;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -6,11 +6,6 @@ import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
 import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-29
- * 原网站：https://3z.hncdjyj.edu.cn/p135/yzsz.html
- * 主页：https://3z.hncdjyj.edu.cn
+ * 程序员：徐文帅 日期：2023-01-30
+ * 原网站：http://bsct.bsjstzjt.com/list/bsjtbsctPc/4/126/auto/20/0.html
+ * 主页：http://bsct.bsjstzjt.com
  **/
 @Service
-public class XX8414_1_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DX013394_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://3z.hncdjyj.edu.cn/p135/yzsz.html";
-    public String baseUrl = "https://3z.hncdjyj.edu.cn";
+    public String listUrl = "http://bsct.bsjstzjt.com/list/bsjtbsctPc/4/126/auto/20/0.html";
+    public String baseUrl = "http://bsct.bsjstzjt.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "XX8414-1";
+    public String sourceNum = "DX013394-1";
     // 网站名称
-    public String sourceName = "常德市第三中学";
+    public String sourceName = "保山市产业投资管理有限责任公司";
     // 信息源
-    public String infoSource = "政府采购";
+    public String infoSource = "企业采购";
     // 设置地区
-    public String area = "华中";
+    public String area = "西南";
     // 设置省份
-    public String province = "湖南";
+    public String province = "云南";
     // 设置城市
-    public String city = "常德";
+    public String city = "保山";
     // 设置县
-    public String district = "武陵";
+    public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -62,7 +57,6 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
     public Site getSite() {
         return this.site;
     }
-
 
     public void startCrawl(int ThreadNum, int crawlType) {
         // 赋值
@@ -73,7 +67,7 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
         // 启动爬虫
         spider = Spider.create(this).thread(ThreadNum)
                 .setDownloader(new MyDownloader(serviceContext, false, listUrl));
-        spider.addRequest(new Request("https://www.baidu.com?wd=" + listUrl));
+        spider.addRequest(new Request(listUrl));
         serviceContext.setSpider(spider);
         spider.run();
         // 爬虫状态监控部分
@@ -85,35 +79,24 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            url = url.substring(url.indexOf("=") + 1);
-            String detailHtml = getContent(url);
-            int count = 2;
-            while ("".equals(detailHtml) && count > 0) {
-                detailHtml = getContent(url);
-                count--;
-            }
-            if (!url.contains("/yzsz/")) {
-                Document doc = Jsoup.parse(detailHtml);
-                Elements listElement = doc.select("ul.common-list>li:has(a)");
+            if (url.equals(listUrl)) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select("#list>dd>a");
                 if (listElement.size() > 0) {
-                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、择选、择优、选取、优选、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
-                    for (Element element : listElement) {
-                        Element a = element.select("a").first();
+                    for (Element a : listElement) {
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
                         link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(a.select(".divT2").text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.attr("title").trim();
-                        if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                        String title = a.select(".divT").text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -128,27 +111,22 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
                     List<BranchNew> branchNewList = checkData(detailList, serviceContext);
                     for (BranchNew branch : branchNewList) {
                         map.put(branch.getLink(), branch);
-                        page.addTargetRequest(new Request("https://www.baidu.com?wd=" + branch.getLink()));
+                        page.addTargetRequest(new Request(branch.getLink()));
                     }
                 } else {
                     dealWithNullListPage(serviceContext);
-                }
-                Element nextPage = doc.select("a:contains(下一页)").first();
-                if (nextPage != null && nextPage.attr("onclick").contains("yzsz_") && serviceContext.isNeedCrawl()) {
-                    String href = url.substring(0, url.lastIndexOf("/") + 1) + nextPage.attr("onclick").trim().replaceAll(".*'(.*?)'.*", "$1");
-                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    page.addTargetRequest("https://www.baidu.com?wd=" + href);
                 }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
                     map.remove(url);
                     serviceContext.setCurrentRecord(branch.getId());
+                    String detailHtml = page.getRawText();
                     Document doc = Jsoup.parse(detailHtml);
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.detail").first();
+                    Element contentElement = doc.select("div.articleBox").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -156,6 +134,9 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
+                            }
+                            if (href.contains(".doc") || href.contains(".pdf") || href.contains(".zip") || href.contains(".xls")) {
+                                a.text("附件下载：" + a.text());
                             }
                             if (href.contains("javascript") || href.equals("#")) {
                                 if (a.attr("onclick").contains("window.open('http")) {
@@ -219,18 +200,27 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h3").first();
+                        Element titleElement = contentElement.select("div.articleT.wow.fadeInUp").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select(".caption p").remove();
+                        titleElement.remove();
+                        contentElement.select("div.articleT2.wow.fadeInUp").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
+                        Element fileElement = doc.select("div.articleHand.wow.fadeInUp:has(a)").first();
+                        if (fileElement != null) {
+                            contentElement.append(fileElement.outerHtml());
+                        }
                         content = contentElement.outerHtml();
+                        if (contentElement.text().trim().length() < 4 && contentElement.select("a").size() == 0 && contentElement.select("img").size() == 0) {
+                            return;
+                        }
                     } else if (url.contains(".doc") || url.contains(".pdf") || url.contains(".zip") || url.contains(".xls")) {
                         content = "<div>附件下载：<a href='" + url + "'>" + branch.getTitle() + "</a></div>";
                         detailHtml = Jsoup.parse(content).toString();
                     }
+
                     RecordVO recordVO = new RecordVO();
                     recordVO.setId(branch.getId());
                     recordVO.setListTitle(branch.getTitle());
@@ -247,40 +237,7 @@ public class XX8414_1_ZhaobGgService extends SpiderService implements PageProces
             e.printStackTrace();
             dealWithError(url, serviceContext, e);
         }
-
     }
 
-    public String getContent(String path) {
-        String result = "";
-        CloseableHttpClient client = null;
-        CloseableHttpResponse response = null;
-        try {
-            client = getHttpClient(true, false);
-            HttpGet httpGet = new HttpGet(path);
-            httpGet.addHeader("User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0");
-            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(20 * 1000)
-                    .setSocketTimeout(30 * 1000).setRedirectsEnabled(false).build();
-            httpGet.setConfig(requestConfig);
-            response = client.execute(httpGet);
-            response.addHeader("Connection", "close");
-            if (response.getStatusLine().getStatusCode() == 200) {
-                result = EntityUtils.toString(response.getEntity(), "UTF-8");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-                if (client != null) {
-                    client.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
-    }
+
 }
