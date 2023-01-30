@@ -1,6 +1,5 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24797;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24835;
 
-import com.alibaba.fastjson.JSON;
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
@@ -25,35 +24,36 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-28
- * 原网站：http://newzhs.jaas.ac.cn/xww/tzgg/index.html
- * 主页：http://newzhs.jaas.ac.cn
+ * 程序员：徐文帅 日期：2023-01-30
+ * 原网站：http://swj.nc.gov.cn/ncsswj/tzgg/nav_list.shtml
+ * 主页：http://swj.nc.gov.cn
  **/
 @Service
-public class DS_24797_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DS_24835_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://newzhs.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=0d9db3d7939f441eb0d3ee994778bdb9&pageId=0ac40ae5b7b740dc9e3666e28f7fdbbb&parseType=bulidstatic&pageType=column&tagId=%E5%BD%93%E5%89%8D%E6%A0%8F%E7%9B%AElist&tplSetId=e6196fdc0d0e4db6b92b7cfbd711e337&paramJson=%7B%22pageNo%22:1,%22pageSize%22:15%7D";
-    public String baseUrl = "http://newzhs.jaas.ac.cn";
+    public String listUrl = "http://swj.nc.gov.cn/ncsswj/tzgg/nav_list.shtml";
+    public String baseUrl = "http://swj.nc.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24797";
+    public String sourceNum = "24835";
     // 网站名称
-    public String sourceName = "江苏省农业科学院农业资源与环境研究所";
+    public String sourceName = "南昌市商务局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
     public String area = "华东";
     // 设置省份
-    public String province = "江苏";
+    public String province = "江西";
     // 设置城市
-    public String city = "南京市";
+    public String city = "南昌";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.76");
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
+
 
     public Site getSite() {
         return this.site;
@@ -80,10 +80,12 @@ public class DS_24797_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/api-gateway")) {
-                Document doc = Jsoup.parse(JSON.parseObject(page.getRawText()).getJSONObject("data").getString("html"));
-                Elements listElement = doc.select(".page-content ul>li:has(a)");
+            if (url.contains("/nav_list")) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select(".cont.mt10>ul>li:has(a)");
                 if (listElement.size() > 0) {
+                    String key = "聘请、询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
+                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
@@ -99,7 +101,7 @@ public class DS_24797_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -120,15 +122,15 @@ public class DS_24797_ZhongbXxService extends SpiderService implements PageProce
                     dealWithNullListPage(serviceContext);
                 }
                 if (serviceContext.getPageNum() == 1) {
-                    int count = Integer.valueOf(doc.select(".pagination").first().attr("count"));
-                    serviceContext.setMaxPage(count / 15);
-                    if (count % 15 != 0) {
-                        serviceContext.setMaxPage(serviceContext.getMaxPage() + 1);
+                    Pattern compile = Pattern.compile("\\d+");
+                    Matcher matcher = compile.matcher(doc.select(".cont.mt10 script").get(1).outerHtml());
+                    if (matcher.find()) {
+                        serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
                     }
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    String href = "http://newzhs.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=0d9db3d7939f441eb0d3ee994778bdb9&pageId=0ac40ae5b7b740dc9e3666e28f7fdbbb&parseType=bulidstatic&pageType=column&tagId=%E5%BD%93%E5%89%8D%E6%A0%8F%E7%9B%AElist&tplSetId=e6196fdc0d0e4db6b92b7cfbd711e337&paramJson=%7B%22pageNo%22:" + serviceContext.getPageNum() + ",%22pageSize%22:15%7D";
+                    String href = listUrl.replace("/nav_list", "/nav_list_" + serviceContext.getPageNum());
                     page.addTargetRequest(href);
                 }
             } else {
@@ -141,11 +143,11 @@ public class DS_24797_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.info").first();
+                    Element contentElement = doc.select("div.contentShow").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
-                            String href = a.attr("href").replace(" ", "");
+                            String href = a.attr("href");
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
@@ -212,9 +214,9 @@ public class DS_24797_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select(".listtitle").first();
+                        Element titleElement = contentElement.select("div.h120.f20.bold").first();
                         if (titleElement != null) {
-                            titleElement.select(".postInfo").remove();
+                            titleElement.select("div").remove();
                             title = titleElement.text().trim();
                         }
                         contentElement.select("script").remove();
