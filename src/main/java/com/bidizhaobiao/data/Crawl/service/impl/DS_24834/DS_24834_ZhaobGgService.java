@@ -120,19 +120,18 @@ public class DS_24834_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-//                if (serviceContext.getPageNum() == 1) {
-//                    Pattern compile = Pattern.compile("\\d+");
-//                    Matcher matcher = compile.matcher(doc.select(".pagination>div").first().html());
-//                    if (matcher.find()) {
-//                        serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
-//                    }
-//                    System.out.println(1);
-//                }
-//                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
-//                    String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
-//                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-//                    page.addTargetRequest(href);
-//                }
+                if (serviceContext.getPageNum() == 1) {
+                    Pattern compile = Pattern.compile("\\d+");
+                    Matcher matcher = compile.matcher(doc.select(".pagination>div").first().html());
+                    if (matcher.find()) {
+                        serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
+                    }
+                }
+                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                    String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
+                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
+                    page.addTargetRequest(href);
+                }
 
             } else {
                 BranchNew branch = map.get(url);
