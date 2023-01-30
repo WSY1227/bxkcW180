@@ -1,6 +1,5 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24797;
+package com.bidizhaobiao.data.Crawl.service.impl.XX8424;
 
-import com.alibaba.fastjson.JSON;
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
@@ -25,35 +24,35 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-01-28
- * 原网站：http://newzhs.jaas.ac.cn/xww/tzgg/index.html
- * 主页：http://newzhs.jaas.ac.cn
+ * 程序员：徐文帅 日期：2023-01-30
+ * 原网站：https://dg4z.dgjy.net/xxdt/xxxw.htm
+ * 主页：https://dg4z.dgjy.net
  **/
 @Service
-public class DS_24797_ZhaobGgService extends SpiderService implements PageProcessor {
+public class XX8424_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://newzhs.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=0d9db3d7939f441eb0d3ee994778bdb9&pageId=0ac40ae5b7b740dc9e3666e28f7fdbbb&parseType=bulidstatic&pageType=column&tagId=%E5%BD%93%E5%89%8D%E6%A0%8F%E7%9B%AElist&tplSetId=e6196fdc0d0e4db6b92b7cfbd711e337&paramJson=%7B%22pageNo%22:1,%22pageSize%22:15%7D";
-    public String baseUrl = "http://newzhs.jaas.ac.cn";
+    public String listUrl = "https://dg4z.dgjy.net/xxdt/xxxw.htm";
+    public String baseUrl = "https://dg4z.dgjy.net";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24797";
+    public String sourceNum = "XX8424-1";
     // 网站名称
-    public String sourceName = "江苏省农业科学院农业资源与环境研究所";
+    public String sourceName = "东莞市第四高级中学";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华南";
     // 设置省份
-    public String province = "江苏";
+    public String province = "广东";
     // 设置城市
-    public String city = "南京市";
+    public String city = "东莞";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.76");
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
@@ -80,17 +79,15 @@ public class DS_24797_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/api-gateway")) {
-                Document doc = Jsoup.parse(JSON.parseObject(page.getRawText()).getJSONObject("data").getString("html"));
-                Elements listElement = doc.select(".page-content ul>li:has(a)");
+            if (url.contains("/xxxw")) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select(".text-list>ul>li:has(a)");
                 if (listElement.size() > 0) {
-                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link;
+                        link = baseUrl + (link.startsWith("../../") ? link.substring(5) : link.substring(2));
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -101,7 +98,7 @@ public class DS_24797_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -121,16 +118,10 @@ public class DS_24797_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                if (serviceContext.getPageNum() == 1) {
-                    int count = Integer.valueOf(doc.select(".pagination").first().attr("count"));
-                    serviceContext.setMaxPage(count / 15);
-                    if (count % 15 != 0) {
-                        serviceContext.setMaxPage(serviceContext.getMaxPage() + 1);
-                    }
-                }
-                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                Element nextPage = doc.select(".p_pages a:contains(下页)").first();
+                if (nextPage != null && nextPage.attr("href").contains(".htm") && serviceContext.isNeedCrawl()) {
+                    String href = url.substring(0, url.lastIndexOf("/") + 1) + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    String href = "http://newzhs.jaas.ac.cn/api-gateway/jpaas-publish-server/front/page/build/unit?webId=0d9db3d7939f441eb0d3ee994778bdb9&pageId=0ac40ae5b7b740dc9e3666e28f7fdbbb&parseType=bulidstatic&pageType=column&tagId=%E5%BD%93%E5%89%8D%E6%A0%8F%E7%9B%AElist&tplSetId=e6196fdc0d0e4db6b92b7cfbd711e337&paramJson=%7B%22pageNo%22:" + serviceContext.getPageNum() + ",%22pageSize%22:15%7D";
                     page.addTargetRequest(href);
                 }
             } else {
@@ -143,11 +134,11 @@ public class DS_24797_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.info").first();
+                    Element contentElement = doc.select("form[name=_newscontent_fromname]").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
-                            String href = a.attr("href").replace(" ", "");
+                            String href = a.attr("href");
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
@@ -214,9 +205,9 @@ public class DS_24797_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select(".listtitle").first();
+                        Element titleElement = contentElement.select("div.art-tit.cont-tit.wow.fadeInUp").first();
                         if (titleElement != null) {
-                            titleElement.select(".postInfo").remove();
+                            titleElement.select("p").remove();
                             title = titleElement.text().trim();
                         }
                         contentElement.select("script").remove();
