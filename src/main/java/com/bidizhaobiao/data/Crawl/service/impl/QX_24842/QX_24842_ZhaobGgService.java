@@ -1,10 +1,10 @@
-package com.bidizhaobiao.data.Crawl.service.impl.QX_24841;
+package com.bidizhaobiao.data.Crawl.service.impl.QX_24842;
 
-import com.alibaba.fastjson.JSONObject;
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
+import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,21 +25,21 @@ import java.util.regex.Pattern;
 
 /**
  * 程序员：徐文帅 日期：2023-01-31
- * 原网站：http://zrzy.jiangsu.gov.cn/gtapp/nrglIndex.action?classID=2c9082b55a6f1c5a015a7d97dcd901f4
- * 主页：http://zrzy.jiangsu.gov.cn/haha/
+ * 原网站：http://zrzy.jiangsu.gov.cn/nj/jyfj/tzgg/
+ * 主页：http://zrzy.jiangsu.gov.cn/nj/jyfj/
  **/
 @Service
-public class QX_24841_TudKcService extends SpiderService implements PageProcessor {
+public class QX_24842_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://zrzy.jiangsu.gov.cn/gtapp/xxgk/tdsc_getTdcrList.action?start=1&limit=18&xzqhdm=320882&lx=&affiche_no=&remise_type=&starttime=&endtime=";
+    public String listUrl = "http://zrzy.jiangsu.gov.cn/nj/jyfj/tzgg/index.htm";
     public String baseUrl = "http://zrzy.jiangsu.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24841";
+    public String sourceNum = "24842";
     // 网站名称
-    public String sourceName = "淮安市自然资源和规划局淮安分局";
+    public String sourceName = "南京市规划和自然资源局建邺分局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
@@ -47,9 +47,9 @@ public class QX_24841_TudKcService extends SpiderService implements PageProcesso
     // 设置省份
     public String province = "江苏";
     // 设置城市
-    public String city = "淮安";
+    public String city = "南京";
     // 设置县
-    public String district = "淮安";
+    public String district = "建邺";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,16 +79,17 @@ public class QX_24841_TudKcService extends SpiderService implements PageProcesso
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("?start=")) {
-                JSONObject dataObject = JSONObject.parseObject(page.getRawText());
-                Document doc = Jsoup.parse("<table>" + dataObject.getString("tableHtml") + "</table>");
-                Elements listElement = doc.select("tr:has(a)");
+            if (url.contains("/index")) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select("table[width=\"93%\"]>tbody>tr");
                 if (listElement.size() > 0) {
+                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
+                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("?") + 1);
-                        link = url.substring(0, url.lastIndexOf("/") + 1) + link;
+                        String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = url.substring(0, url.lastIndexOf("/")) + link.substring(1);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -99,6 +100,9 @@ public class QX_24841_TudKcService extends SpiderService implements PageProcesso
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
+                        if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -116,16 +120,15 @@ public class QX_24841_TudKcService extends SpiderService implements PageProcesso
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-
                 if (serviceContext.getPageNum() == 1) {
                     Pattern compile = Pattern.compile("\\d+");
-                    Matcher matcher = compile.matcher(Jsoup.parse(dataObject.getString("pageHtml")).select("a:contains(末页)").first().attr("onclick"));
+                    Matcher matcher = compile.matcher(doc.select("table script").first().outerHtml());
                     if (matcher.find()) {
                         serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
                     }
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
-                    String href = listUrl.replace("?start=1", "?start=" + serviceContext.getPageNum());
+                    String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -139,10 +142,7 @@ public class QX_24841_TudKcService extends SpiderService implements PageProcesso
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("#dx>table").first();
-                    if (contentElement == null) {
-                        contentElement = doc.select("#style_update").first();
-                    }
+                    Element contentElement = doc.select("table[style=\"border:1px #EDEDED solid;\"] tr").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -213,16 +213,12 @@ public class QX_24841_TudKcService extends SpiderService implements PageProcesso
                                 }
                             }
                         }
-                        Elements titleElement = contentElement.select(".title_middle");
-                        if (titleElement.size() != 0) {
-                            title = titleElement.get(2).text().trim();
+                        Element titleElement = contentElement.select("tbody>tr").first();
+                        if (titleElement != null) {
+                            title = titleElement.text().trim();
                         }
-                        if (titleElement.size() == 0) {
-                            titleElement = contentElement.select("p");
-                            if (titleElement.size() > 0) {
-                                title = titleElement.get(1).text().trim();
-                            }
-                        }
+                        contentElement.select("tr:has(.red_h)").remove();
+                        contentElement.select("td>table").get(1).remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
