@@ -35,7 +35,7 @@ public class DS_24853_ZhaobGgService extends SpiderService implements PageProces
     public Spider spider = null;
 
     public String listUrl = "http://cms.huaian.gov.cn/articleCommonController/lists.do?page=1&pagesize=10&title=&docNo=&orgname=&summary=&key=&deptid=2c94939268fffddd016900af14c40057&topic=5447";
-    public String baseUrl = "http://cms.huaian.gov.cn";
+    public String baseUrl = "http://xfj.huaian.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
@@ -90,7 +90,7 @@ public class DS_24853_ZhaobGgService extends SpiderService implements PageProces
                     for (int i = 0; i < rows.size(); i++) {
                         JSONObject row = rows.getJSONObject(i);
                         String id = row.getString("articleid");
-                        String link = "http://xfj.huaian.gov.cn/" + row.getString("path");
+                        String link = baseUrl + "/" + row.getString("path");
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(row.getString("releaseTime"));
@@ -147,6 +147,10 @@ public class DS_24853_ZhaobGgService extends SpiderService implements PageProces
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
+                            }
+                            if (href.startsWith("upload/")) {
+                                href = baseUrl + "/"+href;
+                                a.attr("href", href);
                             }
                             if (href.contains("javascript") || href.equals("#")) {
                                 if (a.attr("onclick").contains("window.open('http")) {
