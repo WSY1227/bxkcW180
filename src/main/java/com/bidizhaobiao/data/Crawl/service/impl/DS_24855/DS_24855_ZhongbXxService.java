@@ -143,7 +143,8 @@ public class DS_24855_ZhongbXxService extends SpiderService implements PageProce
                     dealWithNullListPage(serviceContext);
                 }
                 if (serviceContext.getPageNum() == 1) {
-                    serviceContext.setMaxPage(Integer.parseInt(doc.select("totalpage").text()) / 3);
+                    int maxPage = Integer.parseInt(doc.select("totalpage").text());
+                    serviceContext.setMaxPage(maxPage % 3 == 0 ? maxPage / 3 : maxPage / 3 + 1);
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
