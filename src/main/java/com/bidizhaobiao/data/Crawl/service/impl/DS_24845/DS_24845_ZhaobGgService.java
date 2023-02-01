@@ -86,12 +86,10 @@ public class DS_24845_ZhaobGgService extends SpiderService implements PageProces
                 json = json.substring(0, json.length() - 1);
                 JSONArray rows = JSONObject.parseObject(json).getJSONArray("list");
                 if (rows.size() > 0) {
+                    String key = "目录";
+                    String[] keys = key.split("、");
                     for (int i = 0; i < rows.size(); i++) {
                         JSONObject row = rows.getJSONObject(i);
-                        String title = row.getString("title").trim();
-                        if (title.contains("目录")) {
-                            continue;
-                        }
                         String link = row.getString("url");
                         String id = link.substring(link.lastIndexOf("/") + 1);
                         String detailLink = link;
@@ -101,6 +99,10 @@ public class DS_24845_ZhaobGgService extends SpiderService implements PageProces
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
+                        }
+                        String title = row.getString("title").trim();
+                        if (CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                            continue;
                         }
                         if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
                             continue;
