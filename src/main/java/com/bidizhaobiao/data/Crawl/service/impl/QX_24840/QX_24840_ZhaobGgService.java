@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24838;
+package com.bidizhaobiao.data.Crawl.service.impl.QX_24840;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-01
- * 原网站：http://wfswj.weifang.gov.cn/ywks/sctxjsk/scjs/
- * 主页：http://wfswj.weifang.gov.cn
+ * 程序员：徐文帅 日期：2023-02-02
+ * 原网站：http://zrzy.jiangsu.gov.cn/cz/zlfj/zxgz/
+ * 主页：http://zrzy.jiangsu.gov.cn/cz/zlfj/
  **/
 @Service
-public class DS_24838_ZhaobGgService extends SpiderService implements PageProcessor {
+public class QX_24840_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://wfswj.weifang.gov.cn/ywks/sctxjsk/scjs/index.html";
-    public String baseUrl = "http://wfswj.weifang.gov.cn";
+    public String listUrl = "http://zrzy.jiangsu.gov.cn/cz/zlfj/zxgz/index.htm";
+    public String baseUrl = "http://zrzy.jiangsu.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24838";
+    public String sourceNum = "24840";
     // 网站名称
-    public String sourceName = "潍坊市商务局";
+    public String sourceName = "常州市自然资源和规划局钟楼分局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
     public String area = "华东";
     // 设置省份
-    public String province = "山东";
+    public String province = "江苏";
     // 设置城市
-    public String city = "潍坊";
+    public String city = "常州";
     // 设置县
-    public String district;
+    public String district = "钟楼";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -81,19 +81,15 @@ public class DS_24838_ZhaobGgService extends SpiderService implements PageProces
             Thread.sleep(500);
             if (url.contains("/index")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".list_c table table tr:has(a)");
+                Elements listElement = doc.select("table[width=\"93%\"] tr");
                 if (listElement.size() > 0) {
-                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
+                    String key = "询标、交易、机构、需求、废旧、废置、报废、供应商、承销商、服务商、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        if (link.startsWith("../../..")) {
-                            link = baseUrl + link.substring(8);
-                        } else {
-                            link = url.substring(0, url.lastIndexOf("/")) + link.substring(1);
-                        }
+                        link = url.substring(0, url.lastIndexOf("/")) + link.substring(1);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -126,10 +122,11 @@ public class DS_24838_ZhaobGgService extends SpiderService implements PageProces
                 }
                 if (serviceContext.getPageNum() == 1) {
                     Pattern compile = Pattern.compile("\\d+");
-                    Matcher matcher = compile.matcher(doc.select(".list_c>table td>script").first().html());
+                    Matcher matcher = compile.matcher(doc.select("table[width=\"1100\"]").first().html());
                     if (matcher.find()) {
                         serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
                     }
+                    System.out.println(1);
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
@@ -146,7 +143,7 @@ public class DS_24838_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.read").first();
+                    Element contentElement = doc.select("#fontzoom").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -217,11 +214,11 @@ public class DS_24838_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div.read_title").first();
+                        Element titleElement = contentElement.select("table[width=\"100%\"] tr").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.read_info").remove();
+                        contentElement.select("div.hd p.titBar").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
