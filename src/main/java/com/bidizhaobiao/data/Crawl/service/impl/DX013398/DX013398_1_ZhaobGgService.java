@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24847;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013398;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,30 +24,30 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-01
- * 原网站：https://lscg.leshan.gov.cn/scgj/countydynamic/list.shtml
- * 主页：https://lscg.leshan.gov.cn
+ * 程序员：徐文帅 日期：2023-02-02
+ * 原网站：http://www.whszjxh.com/news/11/
+ * 主页：http://www.whszjxh.com
  **/
 @Service
-public class DS_24847_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DX013398_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://lscg.leshan.gov.cn/scgj/countydynamic/list.shtml";
-    public String baseUrl = "https://lscg.leshan.gov.cn";
+    public String listUrl = "http://www.whszjxh.com/comp/portalResNews/list.do?compId=portalResNews_list-15761436187158397&cid=11&appId=4&currentPage=1";
+    public String baseUrl = "http://www.whszjxh.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24847";
+    public String sourceNum = "DX013398-1";
     // 网站名称
-    public String sourceName = "乐山市城市管理行政执法局";
+    public String sourceName = "武汉市市政工程机械化施工有限公司";
     // 信息源
-    public String infoSource = "政府采购";
+    public String infoSource = "企业采购";
     // 设置地区
-    public String area = "西南";
+    public String area = "华中";
     // 设置省份
-    public String province = "四川";
+    public String province = "湖北";
     // 设置城市
-    public String city = "乐山";
+    public String city = "武汉";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -79,29 +79,20 @@ public class DS_24847_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.equals(listUrl)) {
+            if (url.contains("&currentPage=")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("ul.news-list>li:has(a)");
+                Elements listElement = doc.select(".p_news>.newList>.content:has(a)");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        if (!link.startsWith(".")) {
-                            continue;
-                        }
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link.substring(5);
+                        link = baseUrl + link;
                         String detailLink = link;
-                        String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
-                        if (dateMat.find()) {
-                            date = dateMat.group(1);
-                            date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
-                            date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
-                        }
+
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -109,7 +100,6 @@ public class DS_24847_ZhongbXxService extends SpiderService implements PageProce
                         serviceContext.setCurrentRecord(branch.getId());
                         branch.setLink(link);
                         branch.setDetailLink(detailLink);
-                        branch.setDate(date);
                         branch.setTitle(title);
                         detailList.add(branch);
                     }
@@ -121,6 +111,15 @@ public class DS_24847_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
+                if (serviceContext.getPageNum() == 1) {
+
+                    serviceContext.setMaxPage(Integer.parseInt(doc.select(".pageNum").get(2).text()));
+                }
+                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
+                    String href = listUrl.replace("currentPage=1", "currentPage=" + serviceContext.getPageNum());
+                    page.addTargetRequest(href);
+                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -131,7 +130,7 @@ public class DS_24847_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.m-detailbox").first();
+                    Element contentElement = doc.select("div.e_box.p_articles").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -202,12 +201,19 @@ public class DS_24847_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("m-detailltitle").first();
+                        Element titleElement = doc.select("div.e_title.p_articlesTitle").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.m-detailinfo").remove();
-                        contentElement.select("div.wzewm").remove();
+                        Element timeElement = doc.select("li:has(.i_pubDate)").first();
+                        if (timeElement != null) {
+                            Matcher dateMat = datePat.matcher(timeElement.text());
+                            if (dateMat.find()) {
+                                date = dateMat.group(1);
+                                date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
+                                date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
+                            }
+                        }
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
