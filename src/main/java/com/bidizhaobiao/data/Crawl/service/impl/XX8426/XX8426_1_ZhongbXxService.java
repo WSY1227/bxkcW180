@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24857;
+package com.bidizhaobiao.data.Crawl.service.impl.XX8426;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-01
- * 原网站：http://gaj.ganzhou.gov.cn/gszgaj/tzgg/common_list.shtml
- * 主页：http://gaj.ganzhou.gov.cn
+ * 程序员：徐文帅 日期：2023-02-02
+ * 原网站：http://www.ly1z.cn/NewsList.aspx
+ * 主页：http://www.ly1z.cn
  **/
 @Service
-public class DS_24857_ZhongbXxService extends SpiderService implements PageProcessor {
+public class XX8426_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://gaj.ganzhou.gov.cn/gszgaj/tzgg/common_list.shtml";
-    public String baseUrl = "http://gaj.ganzhou.gov.cn";
+    public String listUrl = "http://www.ly1z.cn/NewsList.aspx?page=1";
+    public String baseUrl = "http://www.ly1z.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24857";
+    public String sourceNum = "XX8426-1";
     // 网站名称
-    public String sourceName = "赣州市公安局";
+    public String sourceName = "洛阳市第四高级中学";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "华中";
     // 设置省份
-    public String province = "江西";
+    public String province = "河南";
     // 设置城市
-    public String city = "赣州";
+    public String city = "洛阳";
     // 设置县
-    public String district;
+    public String district = "瀍河";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -79,15 +79,15 @@ public class DS_24857_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("/common_list")) {
+            if (url.contains("?page=")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".pageList.listContent.infoList>li:has(a)");
+                Elements listElement = doc.select(".list-b-r-m>ul>li:has(a)");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link;
+                        String id = link.substring(link.lastIndexOf("?") + 1);
+                        link = baseUrl + "/" + link;
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -118,16 +118,10 @@ public class DS_24857_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                if (serviceContext.getPageNum() == 1) {
-                    Pattern compile = Pattern.compile("\\d+");
-                    Matcher matcher = compile.matcher(doc.select(".pageList.listContent.infoList>script").get(1).html());
-                    if (matcher.find()) {
-                        serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
-                    }
-                }
-                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                Element nextPage = doc.select("#ContentPlaceHolder1_AspNetPager1 a:contains(下页)").first();
+                if (nextPage != null && nextPage.attr("href").contains("?page=") && serviceContext.isNeedCrawl()) {
+                    String href = baseUrl + "/" + nextPage.attr("href").trim();
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    String href = listUrl.replace("common_list", "common_list_" + serviceContext.getPageNum());
                     page.addTargetRequest(href);
                 }
             } else {
@@ -140,7 +134,7 @@ public class DS_24857_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("#zoomcon").first();
+                    Element contentElement = doc.select("div.show-info").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -211,13 +205,9 @@ public class DS_24857_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = doc.select("div.detail.clearfix>h1").first();
+                        Element titleElement = doc.select("div.show-title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
-                        }
-                        Elements reldocuments = doc.select("article-reldocuments:has(a)");
-                        if (reldocuments != null) {
-                            contentElement.append(reldocuments.outerHtml());
                         }
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
