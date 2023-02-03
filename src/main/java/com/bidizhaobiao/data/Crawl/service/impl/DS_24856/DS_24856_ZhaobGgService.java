@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24855;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24856;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -29,21 +29,21 @@ import java.util.regex.Pattern;
 
 /**
  * 程序员：徐文帅 日期：2023-02-02
- * 原网站：http://gaj.zjtz.gov.cn/col/col1229053139/index.html
- * 主页：http://gaj.zjtz.gov.cn
+ * 原网站：http://gaj.ningbo.gov.cn/col/col1229027024/index.html
+ * 主页：http://gaj.ningbo.gov.cn
  **/
 @Service
-public class DS_24855_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DS_24856_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://gaj.zjtz.gov.cn/module/jpage/dataproxy.jsp?startrecord=1&endrecord=60&perpage=20";
-    public String baseUrl = "http://gaj.zjtz.gov.cn";
+    public String listUrl = "http://gaj.ningbo.gov.cn/module/jpage/morecolumndataproxy.jsp?startrecord=1&endrecord=60&perpage=20";
+    public String baseUrl = "http://gaj.ningbo.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24855";
+    public String sourceNum = "24856";
     // 网站名称
-    public String sourceName = "台州市公安局";
+    public String sourceName = "宁波市公安局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
@@ -51,12 +51,12 @@ public class DS_24855_ZhaobGgService extends SpiderService implements PageProces
     // 设置省份
     public String province = "浙江";
     // 设置城市
-    public String city = "台州";
+    public String city = "宁波";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
@@ -70,14 +70,15 @@ public class DS_24855_ZhaobGgService extends SpiderService implements PageProces
         Map<String, Object> params = new HashMap<>();
         params.put("col", "1");
         params.put("appid", "1");
-        params.put("webid", "3465");
+        params.put("webid", "3437");
         params.put("path", "/");
-        params.put("columnid", "1229053139");
-        params.put("sourceContentType", "1");
-        params.put("unitid", "5921712");
-        params.put("webname", "台州市公安局");
-        params.put("permissiontype", "0");
-
+        params.put("columnid", "1229027024");
+        params.put("b_vir", "0");
+        params.put("virinfos", "");
+        params.put("sourceContentType", "3");
+        params.put("unitid", "7583820");
+        params.put("keyWordCount", "999");
+        params.put("webname", "宁波市公安局");
         //设置request参数
         request.setRequestBody(HttpRequestBody.form(params, "utf-8"));
         return request;
@@ -104,16 +105,17 @@ public class DS_24855_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("&perpage=")) {
-                Document doc = Jsoup.parse("<ul>" + page.getRawText().replace("<![CDATA[", "").replace("]]>", "") + "<ul>");
-                Elements listElement = doc.select("record>li:has(a)");
+            if (url.contains("&perpage")) {
+                Document doc = Jsoup.parse(page.getRawText().replace("<![CDATA[", "").replace("]]>", ""));
+                Elements listElement = doc.select(".pd");
                 if (listElement.size() > 0) {
-                    String key = "询标、废旧、废置、处置、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、报价、小额、零星、自采、商谈";
+                    String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -145,7 +147,8 @@ public class DS_24855_ZhaobGgService extends SpiderService implements PageProces
                     dealWithNullListPage(serviceContext);
                 }
                 if (serviceContext.getPageNum() == 1) {
-                    serviceContext.setMaxPage(Integer.parseInt(doc.select("totalpage").text()) / 3);
+                    int maxPage = Integer.parseInt(doc.select("totalpage").text());
+                    serviceContext.setMaxPage(maxPage % 3 == 0 ? maxPage / 3 : maxPage / 3 + 1);
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
@@ -162,7 +165,7 @@ public class DS_24855_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.list_maxcon").first();
+                    Element contentElement = doc.select("div.wenzhang").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -233,11 +236,16 @@ public class DS_24855_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("tr:has(.title)").first();
+                        Element titleElement = contentElement.select("h1").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        titleElement.nextElementSibling().remove();
+                        contentElement.select("p.mobile-tag.status").remove();
+                        contentElement.select("p.status.mobile-hidden").remove();
+                        contentElement.select("div.dy").remove();
+                        contentElement.select("div.wz").remove();
+                        contentElement.select("div.share").remove();
+                        contentElement.select("div.sxp").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
