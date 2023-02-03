@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DX013410;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24881;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,30 +24,30 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-02
- * 原网站：http://news.cnhubei.com/gundong/index.html
- * 主页：http://www.cnhubei.com
+ * 程序员：徐文帅 日期：2023-02-03
+ * 原网站：http://lyj.laibin.gov.cn/gggs/
+ * 主页：http://lyj.laibin.gov.cn/
  **/
 @Service
-public class DX013410_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DS_24881_1_ZhaobGgService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://news.cnhubei.com/gundong/index.html";
-    public String baseUrl = "http://news.cnhubei.com";
+    public String listUrl = "http://lyj.laibin.gov.cn/gggs/index.shtml";
+    public String baseUrl = "http://lyj.laibin.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "DX013410";
+    public String sourceNum = "24881-1";
     // 网站名称
-    public String sourceName = "荆楚网";
+    public String sourceName = "广西来宾市林业局";
     // 信息源
-    public String infoSource = "企业采购";
+    public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华中";
+    public String area = "华南";
     // 设置省份
-    public String province = "湖北";
+    public String province = "广西";
     // 设置城市
-    public String city;
+    public String city = "来宾";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
@@ -81,7 +81,7 @@ public class DX013410_ZhaobGgService extends SpiderService implements PageProces
             Thread.sleep(500);
             if (url.contains("/index")) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".news_list_left>.news_list_left>.jcwlist_newslist");
+                Elements listElement = doc.select("#morelist>ul>li:has(a)");
                 if (listElement.size() > 0) {
                     String key = "询标、交易、机构、需求、废旧、废置、处置、报废、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
                     String[] keys = key.split("、");
@@ -89,6 +89,7 @@ public class DX013410_ZhaobGgService extends SpiderService implements PageProces
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = url.substring(0, url.lastIndexOf("/")) + link.substring(1);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -99,7 +100,7 @@ public class DX013410_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -119,9 +120,15 @@ public class DX013410_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select(".page.ov>.next").first();
-                if (nextPage != null && nextPage.attr("href").contains("/index") && serviceContext.isNeedCrawl()) {
-                    String href = nextPage.attr("href").trim();
+                if (serviceContext.getPageNum() == 1) {
+                    Pattern compile = Pattern.compile("\\d+");
+                    Matcher matcher = compile.matcher(doc.select(".more-page>script").first().html());
+                    if (matcher.find()) {
+                        serviceContext.setMaxPage(Integer.parseInt(matcher.group()));
+                    }
+                }
+                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                    String href = listUrl.replace("index", "index_" + serviceContext.getPageNum());
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
                     page.addTargetRequest(href);
                 }
@@ -135,7 +142,7 @@ public class DX013410_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div#lmy").first();
+                    Element contentElement = doc.select("div.article").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -210,10 +217,9 @@ public class DX013410_ZhaobGgService extends SpiderService implements PageProces
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.lmy_dw").remove();
-                        contentElement.select("div.article_right_box").remove();
-                        contentElement.select("div#lmy_information01").remove();
-                        contentElement.select("div#lmy_bottom_div01").remove();
+                        contentElement.select("div.article-inf.fn-clear").remove();
+                        contentElement.select("#downloadfile:not(:has(a))").remove();
+                        contentElement.select("#relfile:not(:has(a))").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
