@@ -1,5 +1,7 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24850;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24852;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
@@ -28,55 +30,51 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-02
- * 原网站：https://gaj.jiaxing.gov.cn/col/col1666383/index.html
- * 主页：https://gaj.jiaxing.gov.cn
+ * 程序员：徐文帅 日期：2023-02-03
+ * 原网站：http://yl.sxggzyjy.cn/jydt/001001/subPage.html
+ * 主页：http://yl.sxggzyjy.cn
  **/
 @Service
-public class DS_24850_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DS_24852_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://gaj.jiaxing.gov.cn/module/jpage/dataproxy.jsp?startrecord=1&endrecord=90&perpage=30";
-    public String baseUrl = "https://gaj.jiaxing.gov.cn";
+    public String listUrl = "http://yl.sxggzyjy.cn/epointjweb/zcfgSearch.action?cmd=getListByCount";
+    public String baseUrl = "http://yl.sxggzyjy.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24850";
+    public String sourceNum = "24852";
     // 网站名称
-    public String sourceName = "嘉兴市公安局";
+    public String sourceName = "全国公共资源交易平台（陕西省·榆林市）";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "西北";
     // 设置省份
-    public String province = "浙江";
+    public String province = "陕西";
     // 设置城市
-    public String city = "嘉兴";
+    public String city = "榆林";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
-
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
     }
 
-    public Request getListRequest(int star, int end) {
-        Request request = new Request(listUrl.replace("startrecord=1", "startrecord=" + star).replace("endrecord=90", "endrecord=" + end));
-        request.setMethod(HttpConstant.Method.POST).addHeader("Content-Type", "application/x-www-form-urlencoded");
+    public Request getListRequest(int pageNumber) {
+        Request request = new Request("http://yl.sxggzyjy.cn/epointjweb/zcfgSearch.action?cmd=getList")
+                .setMethod(HttpConstant.Method.POST)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded");
         //将键值对数组添加到map中
         Map<String, Object> params = new HashMap<>();
-        params.put("col", "1");
-        params.put("appid", "1");
-        params.put("webid", "3179");
-        params.put("path", "/");
-        params.put("columnid", "1666383");
-        params.put("sourceContentType", "1");
-        params.put("unitid", "7900411");
-        params.put("webname", "嘉兴市公安局门户网站");
-        params.put("permissiontype", "0");
+        params.put("siteGuid", "075e48cc-ac89-4c8f-9d78-2beb33ad83a3");
+        params.put("title", "");
+        params.put("categorynum", "001001");
+        params.put("pageIndex", "" + pageNumber);
+        params.put("pageSize", "10");
 
         //设置request参数
         request.setRequestBody(HttpRequestBody.form(params, "utf-8"));
@@ -91,8 +89,17 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
         saveCrawlLog(serviceContext);
         // 启动爬虫
         spider = Spider.create(this).thread(ThreadNum)
-                .setDownloader(new MyDownloader(serviceContext, false, listUrl));
-        spider.addRequest(getListRequest(1,90));
+                .setDownloader(new MyDownloader(serviceContext, true, listUrl));
+        Request request = new Request(listUrl)
+                .setMethod(HttpConstant.Method.POST)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded");
+        Map<String, Object> params = new HashMap<>();
+        params.put("siteGuid", "075e48cc-ac89-4c8f-9d78-2beb33ad83a3");
+        params.put("title", "");
+        params.put("categorynum", "001001");
+        params.put("pageIndex", "0");
+        params.put("pageSize", "0");
+        spider.addRequest(request);
         serviceContext.setSpider(spider);
         spider.run();
         // 爬虫状态监控部分
@@ -104,28 +111,27 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("&perpage=")) {
-                Document doc = Jsoup.parse("<ul>" + page.getRawText().replace("<![CDATA[", "").replace("]]>", "") + "</ul>");
-                Elements listElement = doc.select("record>li:has(a)");
-                if (listElement.size() > 0) {
-                    String key = "询标、废旧、废置、处置、供应商、承销商、服务商、调研、优选、择选、择优、选取、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、延期、挂牌、变更、预公告、监理、改造工程、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
-                    for (Element element : listElement) {
-                        Element a = element.select("a").first();
-                        String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link;
+            if (url.equals(listUrl)) {
+                serviceContext.setMaxPage(JSONObject.parseObject(page.getRawText()).getInteger("custom"));
+                page.addTargetRequest(getListRequest(1));
+            } else if (url.contains("?cmd=getList")) {
+                JSONArray rows = JSONObject.parseObject(JSONObject.parseObject(page.getRawText()).getString("custom")).getJSONArray("Table");
+                if (rows.size() > 0) {
+                    for (int i = 0; i < rows.size(); i++) {
+                        JSONObject row = rows.getJSONObject(i);
+
+                        String id = row.getString("infoid");
+                        String link = baseUrl + row.getString("href");
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(row.getString("infodate"));
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
-                        String title = a.attr("title").trim();
-                        if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                        String title = row.getString("title").trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -145,14 +151,9 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                if (serviceContext.getPageNum() == 1) {
-                    int count = Integer.parseInt(doc.select("totalrecord").text());
-                    serviceContext.setMaxPage(count % 90 == 0 ? count / 90 : count / 90 + 1);
-                }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    int star = (serviceContext.getPageNum() - 1) * 90 + 1;
-                    page.addTargetRequest(getListRequest(star, star + 89));
+                    page.addTargetRequest(getListRequest(serviceContext.getPageNum()));
                 }
             } else {
                 BranchNew branch = map.get(url);
@@ -164,7 +165,7 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.news-content").first();
+                    Element contentElement = doc.select(".ewb-main").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -172,6 +173,17 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
                             a.attr("rel", "noreferrer");
                             if (href.startsWith("mailto")) {
                                 continue;
+                            }
+                            if (href.equals("javascript:void(0);")) {
+                                href = a.attr("onclick");
+                                if (href.contains("http:")) {
+                                    href = href.substring(href.indexOf("http:"), href.lastIndexOf("&siteGuid="));
+                                } else {
+                                    href = href.replace("ztbfjyz('", "");
+                                    href = baseUrl + href.substring(0, href.indexOf("'"));
+                                }
+                                a.attr("href", href);
+                                a.removeAttr("onclick");
                             }
                             if (href.contains("javascript") || href.equals("#")) {
                                 if (a.attr("onclick").contains("window.open('http")) {
@@ -205,6 +217,9 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
+                        if (contentElement.select(".epoint-article-content").text().trim().length() < 4 && contentElement.select(".epoint-article-content").select("a").size() == 0 && contentElement.select(".epoint-article-content").select("img").size() == 0) {
+                            return;
+                        }
                         Elements imgList = contentElement.select("IMG");
                         for (Element img : imgList) {
                             String src = img.attr("src");
@@ -235,11 +250,13 @@ public class DS_24850_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h2").first();
+                        Element titleElement = contentElement.select("h3.article-title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.text-center.color_999").remove();
+
+                        contentElement.select(".info-source").remove();
+                        doc.select(".ewb-main>font").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
