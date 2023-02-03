@@ -1,9 +1,10 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DX013424;
+package com.bidizhaobiao.data.Crawl.service.impl.DX013407;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
+import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-02
- * 原网站：https://yuanxingecg.longdaoyun.com/opportunity/?projectType=2&pageNum=1
- * 主页：https://yuanxingecg.longdaoyun.com
+ * 程序员：徐文帅 日期：2023-02-03
+ * 原网站：http://www.fhdjd.net/list.asp?clf=3&classid=15
+ * 主页：http://www.fhdjd.net
  **/
 @Service
-public class DX013424_1_ZhaobGgService extends SpiderService implements PageProcessor {
+public class DX013407_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://yuanxingecg.longdaoyun.com/opportunity/?projectType=2&pageNum=1";
-    public String baseUrl = "https://yuanxingecg.longdaoyun.com";
+    public String listUrl = "http://www.fhdjd.net/list.asp?clf=3&classid=15";
+    public String baseUrl = "http://www.fhdjd.net";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "DX013424-1";
+    public String sourceNum = "DX013407";
     // 网站名称
-    public String sourceName = "内蒙古远兴能源股份有限公司";
+    public String sourceName = "四川凤凰酒店投资管理有限公司";
     // 信息源
     public String infoSource = "企业采购";
     // 设置地区
-    public String area = "全国";
+    public String area = "西南";
     // 设置省份
-    public String province;
+    public String province = "四川";
     // 设置城市
-    public String city;
+    public String city = "广元";
     // 设置县
-    public String district;
+    public String district = "利州";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -80,15 +81,16 @@ public class DX013424_1_ZhaobGgService extends SpiderService implements PageProc
             Thread.sleep(500);
             if (url.equals(listUrl)) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("#d-ulmain0>ul>li tr:has(a)");
+                Elements listElement = doc.select("div.divinfowai:has(a)");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("?") + 1);
+                        link = baseUrl + "/" + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.select("td[width=\"300px;\"]").text());
+                        Matcher dateMat = datePat.matcher(element.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
@@ -96,6 +98,9 @@ public class DX013424_1_ZhaobGgService extends SpiderService implements PageProc
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                            continue;
+                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -123,7 +128,7 @@ public class DX013424_1_ZhaobGgService extends SpiderService implements PageProc
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.baoming").first();
+                    Element contentElement = doc.select("div[style=\"clear:both\"]").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -194,11 +199,12 @@ public class DX013424_1_ZhaobGgService extends SpiderService implements PageProc
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div.left.fl>p").first();
+                        Element titleElement = contentElement.select("div[style=\"font-size: 20px; font-family:宋体; font-weight:bold; color:默认颜色; line-height:30px; text-align:center;\"]").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.content-box.clearfix").remove();
+                        contentElement.select("div[style=\"text-align:center; height:20px; margin-top:8px; border-bottom:1px dotted #CCC; color:#FF8105\"]").remove();
+                        contentElement.select("div[style=\"margin-top:15px; text-align:center\"]").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
