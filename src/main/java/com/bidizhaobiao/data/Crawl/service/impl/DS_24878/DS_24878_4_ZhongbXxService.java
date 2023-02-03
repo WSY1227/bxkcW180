@@ -1,10 +1,9 @@
-package com.bidizhaobiao.data.Crawl.service.impl.XX8426;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24878;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
 import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
-import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,38 +23,38 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-02
- * 原网站：http://www.ly1z.cn/NewsList.aspx
- * 主页：http://www.ly1z.cn
+ * 程序员：徐文帅 日期：2023-02-03
+ * 原网站：http://www.gdyxzbgs.com/xw_/11.html
+ * 主页：http://www.gdyxzbgs.com
  **/
 @Service
-public class XX8426_1_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DS_24878_4_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.ly1z.cn/NewsList.aspx?page=1";
-    public String baseUrl = "http://www.ly1z.cn";
+    public String listUrl = "http://www.gdyxzbgs.com/xw_/11.html";
+    public String baseUrl = "http://www.gdyxzbgs.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "XX8426-1";
+    public String sourceNum = "24878-4";
     // 网站名称
-    public String sourceName = "洛阳市第四高级中学";
+    public String sourceName = "广东一心招标有限公司";
     // 信息源
-    public String infoSource = "政府采购";
+    public String infoSource = "工程建设";
     // 设置地区
-    public String area = "华中";
+    public String area = "华南";
     // 设置省份
-    public String province = "河南";
+    public String province = "广东";
     // 设置城市
-    public String city = "洛阳";
+    public String city = "东莞";
     // 设置县
-    public String district = "瀍河";
+    public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
-        return this.site;
+          return this.site;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
@@ -79,28 +78,25 @@ public class XX8426_1_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("?page=")) {
+            if (url.equals(listUrl)) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select(".list-b-r-m>ul>li:has(a)");
+                Elements listElement = doc.select(".new-list>ul>li a");
                 if (listElement.size() > 0) {
-                    for (Element element : listElement) {
-                        Element a = element.select("a").first();
+                    for (Element a : listElement) {
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("?") + 1);
-                        link = baseUrl + "/" + link;
+                        String id = link.substring(link.lastIndexOf("/") + 1);
+                        link = baseUrl + link;
                         String detailLink = link;
                         String date = "";
-                        Matcher dateMat = datePat.matcher(element.text());
+                        Matcher dateMat = datePat.matcher(a.text());
                         if (dateMat.find()) {
                             date = dateMat.group(1);
                             date += dateMat.group(3).length() == 2 ? "-" + dateMat.group(3) : "-0" + dateMat.group(3);
                             date += dateMat.group(5).length() == 2 ? "-" + dateMat.group(5) : "-0" + dateMat.group(5);
                         }
+                        a.select("span").remove();
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
-                            continue;
-                        }
                         BranchNew branch = new BranchNew();
                         branch.setId(id);
                         serviceContext.setCurrentRecord(branch.getId());
@@ -118,12 +114,6 @@ public class XX8426_1_ZhongbXxService extends SpiderService implements PageProce
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                Element nextPage = doc.select("#ContentPlaceHolder1_AspNetPager1 a:contains(下页)").first();
-                if (nextPage != null && nextPage.attr("href").contains("?page=") && serviceContext.isNeedCrawl()) {
-                    String href = baseUrl + "/" + nextPage.attr("href").trim();
-                    serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    page.addTargetRequest(href);
-                }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
@@ -134,7 +124,7 @@ public class XX8426_1_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.show-info").first();
+                    Element contentElement = doc.select("div.content").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -205,10 +195,14 @@ public class XX8426_1_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = doc.select("div.show-title").first();
+                        Element titleElement = contentElement.select("h3").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
+                        contentElement.select("div.title-top").remove();
+                        contentElement.select("p[style=\"margin-bottom: 15px;text-align: center;font-size: 15px;color: #999;\"]").first().remove();
+                        contentElement.select("div[style=\"float: left\"]").remove();
+                        contentElement.select("div[style=\"float: right\"]").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
