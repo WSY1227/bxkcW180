@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-02
+ * 程序员：徐文帅 日期：2023-02-03
  * 原网站：http://gaj.ningbo.gov.cn/col/col1229027024/index.html
  * 主页：http://gaj.ningbo.gov.cn
  **/
@@ -126,6 +126,9 @@ public class DS_24856_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
+                        if (title.contains("清理结果")) {
+                            continue;
+                        }
                         if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
                             continue;
                         }
