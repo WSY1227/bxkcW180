@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24850;
+package com.bidizhaobiao.data.Crawl.service.impl.DS_24846;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -6,6 +6,11 @@ import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
 import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,72 +20,47 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.model.HttpRequestBody;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.utils.HttpConstant;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-02
- * 原网站：https://gaj.jiaxing.gov.cn/col/col1666383/index.html
- * 主页：https://gaj.jiaxing.gov.cn
+ * 程序员：徐文帅 日期：2023-02-03
+ * 原网站：https://csglxzzfj.chizhou.gov.cn/OpennessContent/showList/55/6207/page_1.html
+ * 主页：https://csglxzzfj.chizhou.gov.cn
  **/
 @Service
-public class DS_24850_ZhongbXxService extends SpiderService implements PageProcessor {
+public class DS_24846_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://gaj.jiaxing.gov.cn/module/jpage/dataproxy.jsp?startrecord=1&endrecord=90&perpage=30";
-    public String baseUrl = "https://gaj.jiaxing.gov.cn";
+    public String listUrl = "https://csglxzzfj.chizhou.gov.cn/OpennessContent/showList/55/6207/page_1.html";
+    public String baseUrl = "https://csglxzzfj.chizhou.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24850";
+    public String sourceNum = "24846";
     // 网站名称
-    public String sourceName = "嘉兴市公安局";
+    public String sourceName = "池州市城市管理行政执法局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
     public String area = "华东";
     // 设置省份
-    public String province = "浙江";
+    public String province = "安徽";
     // 设置城市
-    public String city = "嘉兴";
+    public String city = "池州";
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
-
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
 
     public Site getSite() {
         return this.site;
-    }
-
-    public Request getListRequest(int star, int end) {
-        Request request = new Request(listUrl.replace("startrecord=1", "startrecord=" + star).replace("endrecord=90", "endrecord=" + end));
-        request.setMethod(HttpConstant.Method.POST).addHeader("Content-Type", "application/x-www-form-urlencoded");
-        //将键值对数组添加到map中
-        Map<String, Object> params = new HashMap<>();
-        params.put("col", "1");
-        params.put("appid", "1");
-        params.put("webid", "3179");
-        params.put("path", "/");
-        params.put("columnid", "1666383");
-        params.put("sourceContentType", "1");
-        params.put("unitid", "7900411");
-        params.put("webname", "嘉兴市公安局门户网站");
-        params.put("permissiontype", "0");
-
-        //设置request参数
-        request.setRequestBody(HttpRequestBody.form(params, "utf-8"));
-        return request;
     }
 
     public void startCrawl(int ThreadNum, int crawlType) {
@@ -92,7 +72,7 @@ public class DS_24850_ZhongbXxService extends SpiderService implements PageProce
         // 启动爬虫
         spider = Spider.create(this).thread(ThreadNum)
                 .setDownloader(new MyDownloader(serviceContext, false, listUrl));
-        spider.addRequest(getListRequest(1, 90));
+        spider.addRequest(new Request("https://www.baidu.com?wd=" + listUrl));
         serviceContext.setSpider(spider);
         spider.run();
         // 爬虫状态监控部分
@@ -104,10 +84,19 @@ public class DS_24850_ZhongbXxService extends SpiderService implements PageProce
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            if (url.contains("&perpage=")) {
-                Document doc = Jsoup.parse("<ul>" + page.getRawText().replace("<![CDATA[", "").replace("]]>", "") + "</ul>");
-                Elements listElement = doc.select("record>li:has(a)");
+            url = url.substring(url.indexOf("=") + 1);
+            String detailHtml = getContent(url);
+            int count = 2;
+            while ("".equals(detailHtml) && count > 0) {
+                detailHtml = getContent(url);
+                count--;
+            }
+            if (url.contains("/page_")) {
+                Document doc = Jsoup.parse(detailHtml);
+                Elements listElement = doc.select(".m-tglist.f-pr.f-mb25.f-md-mb15>ul>li:has(a)");
                 if (listElement.size() > 0) {
+                    String key = "说明、未产生";
+                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
@@ -123,7 +112,7 @@ public class DS_24850_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (title.contains("测评结果") || title.contains("测评结果")) {
+                        if (CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
                             continue;
                         }
                         if (!CheckProclamationUtil.isProclamationValuable(title)) {
@@ -141,31 +130,29 @@ public class DS_24850_ZhongbXxService extends SpiderService implements PageProce
                     List<BranchNew> branchNewList = checkData(detailList, serviceContext);
                     for (BranchNew branch : branchNewList) {
                         map.put(branch.getLink(), branch);
-                        page.addTargetRequest(new Request(branch.getLink()));
+                        page.addTargetRequest(new Request("https://www.baidu.com?wd=" + branch.getLink()));
                     }
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
                 if (serviceContext.getPageNum() == 1) {
-                    int count = Integer.parseInt(doc.select("totalrecord").text());
-                    serviceContext.setMaxPage(count % 90 == 0 ? count / 90 : count / 90 + 1);
+                    serviceContext.setMaxPage(Integer.parseInt(doc.select("#pagination pagination ").first().attr("pagecount")));
                 }
                 if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    int star = (serviceContext.getPageNum() - 1) * 90 + 1;
-                    page.addTargetRequest(getListRequest(star, star + 89));
+                    String href = listUrl.replace("/page_1", "/page_" + serviceContext.getPageNum());
+                    page.addTargetRequest("https://www.baidu.com?wd=" + href);
                 }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
                     map.remove(url);
                     serviceContext.setCurrentRecord(branch.getId());
-                    String detailHtml = page.getRawText();
                     Document doc = Jsoup.parse(detailHtml);
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div.news-content").first();
+                    Element contentElement = doc.select("#zoom").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -236,11 +223,15 @@ public class DS_24850_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("h2").first();
+                        Element titleElement = doc.select("div.text-center.u-title").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div.text-center.color_999").remove();
+                        Element fileElement = doc.select(".m-relation").first();
+                        if (fileElement != null) {
+                            contentElement.append(fileElement.outerHtml());
+                        }
+                        contentElement.select(".xu-list").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
@@ -266,5 +257,37 @@ public class DS_24850_ZhongbXxService extends SpiderService implements PageProce
         }
     }
 
-
+    public String getContent(String path) {
+        String result = "";
+        CloseableHttpClient client = null;
+        CloseableHttpResponse response = null;
+        try {
+            client = getHttpClient(true, false);
+            HttpGet httpGet = new HttpGet(path);
+            httpGet.addHeader("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0");
+            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(20 * 1000)
+                    .setSocketTimeout(30 * 1000).setRedirectsEnabled(false).build();
+            httpGet.setConfig(requestConfig);
+            response = client.execute(httpGet);
+            response.addHeader("Connection", "close");
+            if (response.getStatusLine().getStatusCode() == 200) {
+                result = EntityUtils.toString(response.getEntity(), "UTF-8");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (response != null) {
+                    response.close();
+                }
+                if (client != null) {
+                    client.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
 }
