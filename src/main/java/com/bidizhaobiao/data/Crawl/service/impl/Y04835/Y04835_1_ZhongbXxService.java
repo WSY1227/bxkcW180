@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DX013407;
+package com.bidizhaobiao.data.Crawl.service.impl.Y04835;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -24,32 +24,32 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-03
- * 原网站：http://www.fhdjd.net/list.asp?clf=3&classid=15
- * 主页：http://www.fhdjd.net
+ * 程序员：徐文帅 日期：2023-02-06
+ * 原网站：http://www.jlslyszyy.com/lyszyy/dh?category_id=4
+ * 主页：http://www.jlslyszyy.com
  **/
-@Service
-public class DX013407_ZhongbXxService extends SpiderService implements PageProcessor {
+@Service("Y04835_1_ZhongbXxService")
+public class Y04835_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "http://www.fhdjd.net/list.asp?clf=3&classid=15";
-    public String baseUrl = "http://www.fhdjd.net";
+    public String listUrl = "http://www.jlslyszyy.com/lyszyy/dh?category_id=4";
+    public String baseUrl = "http://www.jlslyszyy.com";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "DX013407";
+    public String sourceNum = "Y04835-1";
     // 网站名称
-    public String sourceName = "四川凤凰酒店投资管理有限公司";
+    public String sourceName = "辽源市中医院";
     // 信息源
-    public String infoSource = "企业采购";
+    public String infoSource = "政府采购";
     // 设置地区
-    public String area = "西南";
+    public String area = "东北";
     // 设置省份
-    public String province = "四川";
+    public String province = "吉林";
     // 设置城市
-    public String city = "广元";
+    public String city = "辽源";
     // 设置县
-    public String district = "利州";
+    public String district = "龙山";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
     Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
@@ -81,13 +81,12 @@ public class DX013407_ZhongbXxService extends SpiderService implements PageProce
             Thread.sleep(500);
             if (url.equals(listUrl)) {
                 Document doc = Jsoup.parse(page.getRawText());
-                Elements listElement = doc.select("div.divinfowai:has(a)");
+                Elements listElement = doc.select(".tab_content>table tr:has(a)");
                 if (listElement.size() > 0) {
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
-                        String id = link.substring(link.lastIndexOf("?") + 1);
-                        link = baseUrl + "/" + link;
+                        String id = link.substring(link.lastIndexOf("/") + 1);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -128,7 +127,7 @@ public class DX013407_ZhongbXxService extends SpiderService implements PageProce
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("div[style=\"clear:both\"]").first();
+                    Element contentElement = doc.select("div.content_container").first();
                     if (contentElement != null) {
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
@@ -199,12 +198,11 @@ public class DX013407_ZhongbXxService extends SpiderService implements PageProce
                                 }
                             }
                         }
-                        Element titleElement = contentElement.select("div[style=\"font-size: 20px; font-family:宋体; font-weight:bold; color:默认颜色; line-height:30px; text-align:center;\"]").first();
+                        Element titleElement = contentElement.select("div.content_t").first();
                         if (titleElement != null) {
+                            titleElement.select("p").remove();
                             title = titleElement.text().trim();
                         }
-                        contentElement.select("div[style=\"text-align:center; height:20px; margin-top:8px; border-bottom:1px dotted #CCC; color:#FF8105\"]").remove();
-                        contentElement.select("div[style=\"margin-top:15px; text-align:center\"]").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
