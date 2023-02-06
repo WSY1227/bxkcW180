@@ -1,4 +1,4 @@
-package com.bidizhaobiao.data.Crawl.service.impl.DS_24846;
+package com.bidizhaobiao.data.Crawl.service.impl.SJ_24894;
 
 import com.bidizhaobiao.data.Crawl.entity.oracle.BranchNew;
 import com.bidizhaobiao.data.Crawl.entity.oracle.RecordVO;
@@ -6,11 +6,6 @@ import com.bidizhaobiao.data.Crawl.service.MyDownloader;
 import com.bidizhaobiao.data.Crawl.service.SpiderService;
 import com.bidizhaobiao.data.Crawl.utils.CheckProclamationUtil;
 import com.bidizhaobiao.data.Crawl.utils.SpecialUtil;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,35 +24,35 @@ import java.util.regex.Pattern;
 
 
 /**
- * 程序员：徐文帅 日期：2023-02-03
- * 原网站：https://csglxzzfj.chizhou.gov.cn/OpennessContent/showList/55/6207/page_1.html
- * 主页：https://csglxzzfj.chizhou.gov.cn
+ * 程序员：徐文帅 日期：2023-02-06
+ * 原网站：http://lcj.cxz.gov.cn/gsgg.htm
+ * 主页：http://lcj.cxz.gov.cn/
  **/
 @Service
-public class DS_24846_ZhaobGgService extends SpiderService implements PageProcessor {
+public class SJ_24894_1_ZhongbXxService extends SpiderService implements PageProcessor {
     public Spider spider = null;
 
-    public String listUrl = "https://csglxzzfj.chizhou.gov.cn/OpennessContent/showList/55/6207/page_1.html";
-    public String baseUrl = "https://csglxzzfj.chizhou.gov.cn";
+    public String listUrl = "http://lcj.cxz.gov.cn/gsgg.htm";
+    public String baseUrl = "http://lcj.cxz.gov.cn";
     public Pattern datePat = Pattern.compile("(\\d{4})(年|/|-|\\.)(\\d{1,2})(月|/|-|\\.)(\\d{1,2})");
 
     // 网站编号
-    public String sourceNum = "24846";
+    public String sourceNum = "24894-1";
     // 网站名称
-    public String sourceName = "池州市城市管理行政执法局";
+    public String sourceName = "楚雄彝族自治州林业局";
     // 信息源
     public String infoSource = "政府采购";
     // 设置地区
-    public String area = "华东";
+    public String area = "西南";
     // 设置省份
-    public String province = "安徽";
+    public String province = "云南";
     // 设置城市
-    public String city = "池州";
+    public String city;
     // 设置县
     public String district;
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
 
     public Site getSite() {
         return this.site;
@@ -72,7 +67,7 @@ public class DS_24846_ZhaobGgService extends SpiderService implements PageProces
         // 启动爬虫
         spider = Spider.create(this).thread(ThreadNum)
                 .setDownloader(new MyDownloader(serviceContext, false, listUrl));
-        spider.addRequest(new Request("https://www.baidu.com?wd=" + listUrl));
+        spider.addRequest(new Request(listUrl));
         serviceContext.setSpider(spider);
         spider.run();
         // 爬虫状态监控部分
@@ -84,24 +79,15 @@ public class DS_24846_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
-            url = url.substring(url.indexOf("=") + 1);
-            String detailHtml = getContent(url);
-            int count = 2;
-            while ("".equals(detailHtml) && count > 0) {
-                detailHtml = getContent(url);
-                count--;
-            }
-            if (url.contains("/page_")) {
-                Document doc = Jsoup.parse(detailHtml);
-                Elements listElement = doc.select(".m-tglist.f-pr.f-mb25.f-md-mb15>ul>li:has(a)");
+            if (url.contains("/gsgg")) {
+                Document doc = Jsoup.parse(page.getRawText());
+                Elements listElement = doc.select(".fr.list>ul>li:has(a)");
                 if (listElement.size() > 0) {
-                    String key = "说明、未产生";
-                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
                         String id = link.substring(link.lastIndexOf("/") + 1);
-                        link = baseUrl + link;
+                        link = baseUrl + link.substring(2);
                         String detailLink = link;
                         String date = "";
                         Matcher dateMat = datePat.matcher(element.text());
@@ -112,10 +98,10 @@ public class DS_24846_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.attr("title").trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (CheckProclamationUtil.isValuableByExceptTitleKeyWords(title, keys)) {
+                        if (title.contains("评审结果") || title.contains("认定结果") || title.contains("复评结果")) {
                             continue;
                         }
-                        if (!CheckProclamationUtil.isProclamationValuable(title, null)) {
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -130,30 +116,33 @@ public class DS_24846_ZhaobGgService extends SpiderService implements PageProces
                     List<BranchNew> branchNewList = checkData(detailList, serviceContext);
                     for (BranchNew branch : branchNewList) {
                         map.put(branch.getLink(), branch);
-                        page.addTargetRequest(new Request("https://www.baidu.com?wd=" + branch.getLink()));
+                        page.addTargetRequest(new Request(branch.getLink()));
                     }
                 } else {
                     dealWithNullListPage(serviceContext);
                 }
-                if (serviceContext.getPageNum() == 1) {
-                    serviceContext.setMaxPage(Integer.parseInt(doc.select("#pagination pagination ").first().attr("pagecount")));
-                }
-                if (serviceContext.getPageNum() < serviceContext.getMaxPage() && serviceContext.isNeedCrawl()) {
+                Element nextPage = doc.select("table a:contains(下页)").first();
+                if (nextPage != null && nextPage.attr("href").contains("htm") && serviceContext.isNeedCrawl()) {
+                    String href = nextPage.attr("href").trim();
+                    href = href.startsWith("gsgg") ? baseUrl + "/" + href : baseUrl + "/gsgg/" + href;
                     serviceContext.setPageNum(serviceContext.getPageNum() + 1);
-                    String href = listUrl.replace("/page_1", "/page_" + serviceContext.getPageNum());
-                    page.addTargetRequest("https://www.baidu.com?wd=" + href);
+                    page.addTargetRequest(href);
                 }
             } else {
                 BranchNew branch = map.get(url);
                 if (branch != null) {
                     map.remove(url);
                     serviceContext.setCurrentRecord(branch.getId());
+                    String detailHtml = page.getRawText();
                     Document doc = Jsoup.parse(detailHtml);
                     String title = branch.getTitle().replace("...", "");
                     String date = branch.getDate();
                     String content = "";
-                    Element contentElement = doc.select("#zoom").first();
+                    Element contentElement = doc.select("form[name=\"_newscontent_fromname\"]").first();
                     if (contentElement != null) {
+                        if (contentElement.select("#vsb_content").text().isEmpty()) {
+                            return;
+                        }
                         Elements aList = contentElement.select("a");
                         for (Element a : aList) {
                             String href = a.attr("href");
@@ -223,15 +212,14 @@ public class DS_24846_ZhaobGgService extends SpiderService implements PageProces
                                 }
                             }
                         }
-                        Element titleElement = doc.select("div.text-center.u-title").first();
+                        Element titleElement = contentElement.select("h1").first();
                         if (titleElement != null) {
                             title = titleElement.text().trim();
                         }
-                        Element fileElement = doc.select(".m-relation").first();
-                        if (fileElement!=null) {
-                            contentElement.append(fileElement.outerHtml());
-                        }
-                        contentElement.select(".xu-list").remove();
+                        contentElement.select("div.label").remove();
+                        contentElement.select("div.creator").remove();
+                        contentElement.select("p[align=\"left\"]:contains(上一条)").remove();
+                        contentElement.select("p[align=\"right\"]:contains(关闭)").remove();
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
                         content = contentElement.outerHtml();
@@ -257,37 +245,5 @@ public class DS_24846_ZhaobGgService extends SpiderService implements PageProces
         }
     }
 
-    public String getContent(String path) {
-        String result = "";
-        CloseableHttpClient client = null;
-        CloseableHttpResponse response = null;
-        try {
-            client = getHttpClient(true, false);
-            HttpGet httpGet = new HttpGet(path);
-            httpGet.addHeader("User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0");
-            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(20 * 1000)
-                    .setSocketTimeout(30 * 1000).setRedirectsEnabled(false).build();
-            httpGet.setConfig(requestConfig);
-            response = client.execute(httpGet);
-            response.addHeader("Connection", "close");
-            if (response.getStatusLine().getStatusCode() == 200) {
-                result = EntityUtils.toString(response.getEntity(), "UTF-8");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-                if (client != null) {
-                    client.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
-    }
+
 }
