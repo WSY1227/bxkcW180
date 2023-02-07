@@ -52,7 +52,7 @@ public class Y04852_1_ZhaobGgService extends SpiderService implements PageProces
     public String district = "琼山";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
 
     public Site getSite() {
         return this.site;
@@ -79,15 +79,18 @@ public class Y04852_1_ZhaobGgService extends SpiderService implements PageProces
         try {
             List<BranchNew> detailList = new ArrayList<BranchNew>();
             Thread.sleep(500);
+            String key = "工程、改造、询标、废旧、废置、处置、报废、供应商、承销商、服务商、择选、择优、选取、优选、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、挂牌、预公告、报价、小额、零星、自采、商谈";
+            String[] keys = key.split("、");
             if (url.contains("&page=")) {
                 Document doc = Jsoup.parse(page.getRawText());
                 Elements listElement = doc.select(".con-news>ul>li:has(a)");
                 if (listElement.size() > 0) {
-                    String key = "工程、改造、询标、废旧、废置、处置、报废、供应商、承销商、服务商、择选、择优、选取、优选、公选、选定、摇选、摇号、摇珠、抽选、定选、定点、招标、采购、询价、询比、竞标、竞价、竞谈、竞拍、竞卖、竞买、竞投、竞租、比选、比价、竞争性、谈判、磋商、投标、邀标、议标、议价、单一来源、标段、明标、明投、出让、转让、拍卖、招租、出租、预审、发包、承包、分包、外包、开标、遴选、答疑、补遗、澄清、挂牌、预公告、报价、小额、零星、自采、商谈";
-                    String[] keys = key.split("、");
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
+                        if (!link.startsWith("/")) {
+                            continue;
+                        }
                         String id = link.substring(link.lastIndexOf("?") + 1);
                         link = baseUrl + link;
                         String detailLink = link;
@@ -100,7 +103,7 @@ public class Y04852_1_ZhaobGgService extends SpiderService implements PageProces
                         }
                         String title = a.select(".title h3").text().trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                        if (!title.contains("...") && !CheckProclamationUtil.isProclamationValuable(title, keys)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -211,6 +214,9 @@ public class Y04852_1_ZhaobGgService extends SpiderService implements PageProces
                         if (titleElement != null) {
                             titleElement.select(".news_timeBox").remove();
                             title = titleElement.text().trim();
+                        }
+                        if (!CheckProclamationUtil.isProclamationValuable(title, keys)) {
+                            return;
                         }
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();

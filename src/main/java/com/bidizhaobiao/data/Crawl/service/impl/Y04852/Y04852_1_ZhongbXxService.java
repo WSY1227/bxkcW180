@@ -52,7 +52,7 @@ public class Y04852_1_ZhongbXxService extends SpiderService implements PageProce
     public String district = "琼山";
     public String createBy = "徐文帅";
     // 抓取网站的相关配置，包括：编码、抓取间隔、重试次数等
-    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20);
+    Site site = Site.me().setCycleRetryTimes(2).setTimeOut(30000).setSleepTime(20).setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.69");
 
     public Site getSite() {
         return this.site;
@@ -86,6 +86,9 @@ public class Y04852_1_ZhongbXxService extends SpiderService implements PageProce
                     for (Element element : listElement) {
                         Element a = element.select("a").first();
                         String link = a.attr("href").trim();
+                        if (!link.startsWith("/")) {
+                            continue;
+                        }
                         String id = link.substring(link.lastIndexOf("?") + 1);
                         link = baseUrl + link;
                         String detailLink = link;
@@ -98,7 +101,7 @@ public class Y04852_1_ZhongbXxService extends SpiderService implements PageProce
                         }
                         String title = a.select(".title h3").text().trim();
                         if (title.length() < 2) title = a.text().trim();
-                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                        if (!title.contains("...") && !CheckProclamationUtil.isProclamationValuable(title)) {
                             continue;
                         }
                         BranchNew branch = new BranchNew();
@@ -209,6 +212,9 @@ public class Y04852_1_ZhongbXxService extends SpiderService implements PageProce
                         if (titleElement != null) {
                             titleElement.select(".news_timeBox").remove();
                             title = titleElement.text().trim();
+                        }
+                        if (!CheckProclamationUtil.isProclamationValuable(title)) {
+                            return;
                         }
                         contentElement.select("script").remove();
                         contentElement.select("style").remove();
